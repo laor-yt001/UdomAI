@@ -1,0 +1,3491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Udom AI Control Bot Workflow</title>
+  <link rel="icon" href="/favicon.jpg" type="image/jpeg">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+  <style>
+    /* ============================================================
+       YouTube Downloader styles
+    ============================================================ */
+    .yt-hero { text-align: center; padding: 2.5rem 1rem 1.5rem; }
+    .yt-hero-icon { font-size: 3rem; margin-bottom: 0.75rem; }
+    .yt-hero-title { font-size: 1.6rem; font-weight: 800;
+        background: linear-gradient(135deg, #ff4444, #ff0000, #cc0000);
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0.5rem; }
+    .yt-hero-sub { color: var(--text-muted); font-size: 0.9rem; max-width: 540px; margin: 0 auto; line-height: 1.6; }
+
+    .yt-search-box { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; padding: 1.5rem; margin-bottom: 1.5rem; }
+    .yt-input-row { display: flex; gap: 0.75rem; }
+    .yt-url-input { flex: 1; background: #0b0f19; border: 1.5px solid var(--card-border); color: #fff;
+        padding: 0.85rem 1.1rem; border-radius: 12px; font-size: 0.95rem; outline: none; transition: border-color 0.2s; }
+    .yt-url-input:focus { border-color: #ff4444; box-shadow: 0 0 0 3px rgba(255,68,68,0.15); }
+    .yt-search-btn { background: linear-gradient(135deg, #ff4444, #cc0000); color: #fff; border: none;
+        padding: 0.85rem 1.5rem; border-radius: 12px; font-weight: 700; font-size: 0.95rem; cursor: pointer;
+        transition: all 0.2s; white-space: nowrap; }
+    .yt-search-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(255,68,68,0.35); }
+    .yt-search-btn:active { transform: scale(0.95); }
+    .yt-search-btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+    .yt-error { background: var(--danger-bg); border: 1px solid var(--danger); color: var(--danger);
+        border-radius: 10px; padding: 0.75rem 1rem; margin-top: 0.75rem; font-size: 0.9rem; }
+
+    .yt-card-meta { display: flex; gap: 1.25rem; background: var(--card-bg); border: 1px solid var(--card-border);
+        border-radius: 16px; padding: 1.25rem; margin-bottom: 1.5rem; align-items: flex-start; flex-wrap: wrap; }
+    .yt-thumb { width: 180px; height: 102px; object-fit: cover; border-radius: 10px; flex-shrink: 0; }
+    .yt-meta-info { flex: 1; min-width: 180px; }
+    .yt-title { font-size: 1.05rem; font-weight: 700; color: #fff; margin-bottom: 0.4rem; line-height: 1.4; }
+    .yt-uploader { font-size: 0.85rem; color: var(--primary); margin-bottom: 0.25rem; }
+    .yt-duration { font-size: 0.8rem; color: var(--text-muted); }
+
+    .yt-formats-heading { font-size: 1rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;
+        letter-spacing: 0.5px; margin-bottom: 0.9rem; }
+    .yt-formats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.85rem; margin-bottom: 2rem; }
+    .yt-fmt-card { background: var(--card-bg); border: 2px solid var(--card-border); border-radius: 14px;
+        padding: 18px; margin-bottom: 12px; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex; flex-direction: column; gap: 10px; position: relative; overflow: hidden; }
+    .yt-fmt-card::before {
+        content: ""; position: absolute; top: -2px; left: -2px; right: -2px; bottom: -2px;
+        background: conic-gradient(#ff4444 var(--progress, 0%), transparent 0);
+        z-index: 0; border-radius: 16px; opacity: 0; transition: opacity 0.3s;
+    }
+    .yt-fmt-card.in-progress::before { opacity: 1; }
+    .yt-fmt-card.in-progress-spin::before {
+        background: conic-gradient(from 0deg, transparent 0%, #ff4444 50%, transparent 100%);
+        animation: spin-border 2s linear infinite; opacity: 1;
+    }
+    @keyframes spin-border { 100% { transform: rotate(360deg); } }
+    .yt-fmt-card-inner {
+        position: relative; z-index: 1; background: var(--card-bg); 
+        border-radius: 12px; height: 100%; display: flex; flex-direction: column; gap: 10px;
+        /* when not animating, inner takes full transparent bg to not hide hover */
+        transition: all 0.3s;
+    }
+    .yt-fmt-card.in-progress .yt-fmt-card-inner, .yt-fmt-card.in-progress-spin .yt-fmt-card-inner {
+        padding: 16px; margin: -16px; /* offset the outer padding to keep layout intact */
+    }
+    .yt-fmt-card:hover { border-color: #ff4444; background: rgba(255,68,68,0.06); transform: translateY(-2px); }
+    .yt-fmt-card.selected { border-color: #ff4444; background: rgba(255,68,68,0.12); }
+    .yt-fmt-label { font-weight: 700; font-size: 0.95rem; color: #fff; }
+    .yt-fmt-size { font-size: 0.78rem; color: var(--text-muted); }
+    .yt-fmt-type-badge { display: inline-block; padding: 0.2rem 0.6rem; border-radius: 99px; font-size: 0.7rem;
+        font-weight: 700; text-transform: uppercase; }
+    .yt-fmt-video { background: rgba(99,102,241,0.18); color: #a5b4fc; }
+    .yt-fmt-audio { background: rgba(16,185,129,0.18); color: #6ee7b7; }
+    .yt-dl-btn { display: block; width: 100%; margin-top: 0.5rem; padding: 0.6rem 1rem; border-radius: 10px;
+        background: linear-gradient(135deg, #ff4444, #cc0000); color: #fff; border: none; font-weight: 700;
+        font-size: 0.85rem; cursor: pointer; transition: all 0.2s; }
+    .yt-dl-btn:hover { box-shadow: 0 4px 14px rgba(255,68,68,0.35); }
+    .yt-dl-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .yt-progress-box { background: var(--card-bg); border: 1px solid var(--card-border);
+        border-radius: 16px; padding: 2rem; text-align: center; margin-top: 1rem; }
+    .yt-spinner { width: 44px; height: 44px; border: 4px solid rgba(255,68,68,0.2); border-top-color: #ff4444;
+        border-radius: 50%; animation: ytSpin 0.8s linear infinite; margin: 0 auto 1rem; }
+    @keyframes ytSpin { to { transform: rotate(360deg); } }
+    .yt-progress-text { font-weight: 700; font-size: 1rem; color: #fff; margin-bottom: 0.5rem; }
+    .yt-progress-note { font-size: 0.82rem; color: var(--text-muted); line-height: 1.6; }
+
+    @media (max-width: 600px) {
+      .yt-input-row { flex-direction: column; }
+      .yt-thumb { width: 100%; height: auto; }
+    }
+    :root {
+      color-scheme: dark;
+      --bg-dark: #0b0f19;
+      --card-bg: #151c2c;
+      --card-border: #232d42;
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --success: #10b981;
+      --success-bg: rgba(16, 185, 129, 0.15);
+      --danger: #ef4444;
+      --danger-bg: rgba(239, 68, 68, 0.15);
+      --warning: #f59e0b;
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
+    body { background-color: var(--bg-dark); color: var(--text-main); padding: 1rem; min-height: 100vh; }
+    .container { max-width: 100%; margin: 0 auto; }
+    
+    header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 2rem; }
+    .title-area h1 { font-size: 1.5rem; font-weight: 800; background: linear-gradient(135deg, #a5b4fc, #6366f1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .title-area p { color: var(--text-muted); font-size: 0.85rem; margin-top: 0.25rem; }
+    .admin-badge { background: #1e293b; border: 1px solid #334155; padding: 0.5rem 1rem; border-radius: 99px; font-weight: 600; font-size: 0.85rem; display: flex; align-items: center; gap: 0.5rem; }
+    .status-dot { width: 8px; height: 8px; background: var(--success); border-radius: 50%; box-shadow: 0 0 8px var(--success); }
+
+    /* Nav Tabs */
+    .nav-tabs { display: flex; gap: 0.5rem; border-bottom: 1px solid var(--card-border); margin-bottom: 1.5rem; overflow-x: auto; padding-bottom: 0.5rem; }
+    .nav-tab { background: transparent; border: none; color: var(--text-muted); padding: 0.75rem 1.25rem; font-weight: 600; font-size: 0.95rem; cursor: pointer; transition: 0.2s; white-space: nowrap; border-radius: 8px; }
+    .nav-tab.active { background: var(--card-bg); color: var(--primary); border: 1px solid var(--card-border); border-bottom: none; border-bottom-left-radius: 0; border-bottom-right-radius: 0; position: relative; bottom: -1px; }
+    .nav-tab:hover:not(.active) { color: var(--text-main); }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* Stats Grid */
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+    .stat-card { background: var(--card-bg); border: 1px solid var(--card-border); padding: 1.25rem; border-radius: 16px; }
+    .stat-title { color: var(--text-muted); font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+    .stat-value { font-size: 1.75rem; font-weight: 800; margin-top: 0.5rem; }
+
+    /* Toolbar */
+    .toolbar { display: flex; flex-wrap: wrap; gap: 1rem; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+    .search-box { flex: 1; min-width: 200px; position: relative; }
+    .search-box input { width: 100%; background: var(--card-bg); border: 1px solid var(--card-border); color: #fff; padding: 0.75rem 1rem; border-radius: 12px; font-size: 0.95rem; outline: none; }
+    .search-box input:focus { border-color: var(--primary); }
+    .filter-tabs { display: flex; gap: 0.5rem; background: var(--card-bg); border: 1px solid var(--card-border); padding: 4px; border-radius: 12px; flex-wrap: wrap; }
+    .tab-btn { background: transparent; color: var(--text-muted); border: none; font-weight: 600; padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
+    .tab-btn:hover { color: #fff; background: rgba(255,255,255,0.05); }
+    .tab-btn.active { background: var(--primary); color: #fff; }
+    .tab-btn:active { transform: scale(0.95); }
+
+    /* Table */
+    .table-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; text-align: left; min-width: 600px; }
+    th { background: #1a2336; color: var(--text-muted); font-size: 0.8rem; font-weight: 700; text-transform: uppercase; padding: 1rem 1.25rem; border-bottom: 1px solid var(--card-border); }
+    td { padding: 1rem 1.25rem; border-bottom: 1px solid var(--card-border); font-size: 0.9rem; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover { background: rgba(255, 255, 255, 0.02); }
+
+    .user-info { display: flex; flex-direction: column; }
+    .user-name { font-weight: 700; color: #fff; }
+    .user-handle { font-size: 0.8rem; color: var(--primary); text-decoration: none; }
+    .user-handle:hover { text-decoration: underline; }
+
+    .badge { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.35rem 0.75rem; border-radius: 99px; font-weight: 700; font-size: 0.75rem; text-transform: uppercase; }
+    .badge-approved { background: var(--success-bg); color: var(--success); }
+    .badge-blocked { background: var(--danger-bg); color: var(--danger); }
+    .badge-role { background: rgba(99, 102, 241, 0.15); color: var(--primary); }
+    .badge-super { background: rgba(245, 158, 11, 0.15); color: var(--warning); }
+
+    .btn { padding: 0.5rem 1rem; border-radius: 8px; border: none; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
+    .btn:active { transform: scale(0.92); }
+    
+    @keyframes pulseStop {
+      0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+      70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+    }
+    .btn-approve { background: var(--success); color: #fff; }
+    .btn-approve:hover { opacity: 0.9; }
+    .btn-block { background: var(--danger); color: #fff; }
+    .btn-block:hover { opacity: 0.9; }
+    .btn-promote { background: var(--primary); color: #fff; }
+    .btn-promote:hover { opacity: 0.9; }
+
+    .empty-state { text-align: center; padding: 3rem 1rem; color: var(--text-muted); }
+
+    /* Log Viewer */
+    .log-container { background: #000; border: 1px solid var(--card-border); border-radius: 12px; padding: 1rem; height: 500px; overflow-y: auto; font-family: monospace; font-size: 0.85rem; color: #a5b4fc; white-space: pre-wrap; word-wrap: break-word; }
+    
+    /* Settings */
+    .pagination-controls { display: flex; justify-content: center; align-items: center; gap: 0.5rem; margin-top: 1rem; margin-bottom: 1rem; }
+    .pagination-controls button { padding: 0.4rem 0.8rem; background: var(--card-bg); border: 1px solid var(--card-border); color: var(--text-main); border-radius: 8px; cursor: pointer; }
+    .pagination-controls button:disabled { opacity: 0.5; cursor: not-allowed; }
+    .pagination-controls button:hover:not(:disabled) { border-color: var(--primary); color: var(--primary); }
+    .pagination-controls button:active:not(:disabled) { transform: scale(0.92); }
+    .pagination-info { font-size: 0.85rem; color: var(--text-muted); }
+
+    .settings-card { background: var(--card-bg); border: 1px solid var(--card-border); padding: 1.5rem; border-radius: 16px; margin-bottom: 1rem; }
+    .form-group { margin-bottom: 1rem; }
+    .form-group label { display: block; margin-bottom: 0.5rem; color: var(--text-muted); font-size: 0.9rem; }
+    .form-group input, .form-group select { width: 100%; background: #0b0f19; border: 1px solid var(--card-border); color: #fff; padding: 0.75rem 1rem; border-radius: 8px; outline: none; }
+    .form-group input:focus { border-color: var(--primary); }
+    .btn-save { background: var(--primary); color: #fff; padding: 0.75rem 1.5rem; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; transition: all 0.2s; }
+    .btn-save:active { transform: scale(0.95); }
+    .media-library-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1rem; }
+    .media-library-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 1rem; }
+    .media-library-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; overflow: hidden; }
+    .media-library-card img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; background: #0b0f19; display: block; }
+    .media-library-card-body { padding: 0.85rem; }
+    .media-library-name { display: flex; gap: 0.5rem; align-items: flex-start; overflow-wrap: anywhere; margin-bottom: 0.75rem; }
+    .media-library-links { display: flex; flex-wrap: wrap; gap: 0.75rem; font-size: 0.85rem; }
+    .media-library-links a { color: var(--primary); }
+
+    @media (min-width: 768px) {
+      body { padding: 2rem; }
+      .title-area h1 { font-size: 1.75rem; }
+    }
+
+    @media (max-width: 767px) {
+      body { padding: 0.5rem; }
+      header { flex-direction: column; text-align: center; }
+      .title-area { width: 100%; }
+      .toolbar { flex-direction: column; align-items: stretch; }
+      .search-box { width: 100%; }
+      .filter-tabs { justify-content: center; }
+      .stats-grid { grid-template-columns: 1fr; }
+      th, td { padding: 0.75rem 0.5rem; font-size: 0.8rem; }
+      .btn { padding: 0.4rem 0.6rem; font-size: 0.75rem; }
+      .badge { font-size: 0.7rem; padding: 0.25rem 0.5rem; }
+    }
+
+    /* Custom Toast Notification */
+    #toastContainer {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, 50px);
+      background: rgba(21, 28, 44, 0.9);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(99, 102, 241, 0.4);
+      padding: 1.5rem 2.5rem;
+      border-radius: 16px;
+      box-shadow: 0 0 30px rgba(99, 102, 241, 0.3), 0 10px 25px rgba(0,0,0,0.6);
+      z-index: 9999;
+      color: #fff;
+      font-weight: 700;
+      text-align: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    #toastContainer.show {
+      transform: translate(-50%, -50%);
+      opacity: 1;
+    }
+    #toastContainer .toast-icon {
+      font-size: 2.5rem;
+    }
+
+    /* ── Auth Flow Styles ────────────────────────────────────── */
+    .auth-big-btn {
+      display: flex; align-items: center; gap: 1rem;
+      background: var(--bg-dark); border: 1px solid var(--card-border);
+      color: var(--text-main); padding: 1.1rem 1.25rem; border-radius: 14px;
+      cursor: pointer; text-align: left; width: 100%;
+      transition: all 0.22s; font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    .auth-big-btn:hover { border-color: var(--primary); background: rgba(99,102,241,0.1); transform: translateY(-2px); box-shadow: 0 6px 24px rgba(99,102,241,0.15); }
+    .auth-big-btn:active { transform: scale(0.97); }
+    .auth-big-btn-alt { border-color: rgba(165,180,252,0.3); }
+    .auth-big-btn-alt:hover { border-color: #a5b4fc; background: rgba(165,180,252,0.09); box-shadow: 0 6px 24px rgba(165,180,252,0.12); }
+    .auth-btn-icon { font-size: 2rem; flex-shrink: 0; line-height: 1; }
+    .auth-btn-title { font-weight: 700; font-size: 0.95rem; color: #fff; margin-bottom: 0.2rem; }
+    .auth-btn-sub { font-size: 0.78rem; color: var(--text-muted); }
+    .auth-back-btn { background: none; border: none; color: var(--text-muted); cursor: pointer;
+      font-size: 0.85rem; padding: 0; margin-bottom: 1.25rem; font-family: inherit;
+      display: flex; align-items: center; gap: 0.35rem; transition: color 0.2s; }
+    .auth-back-btn:hover { color: var(--text-main); }
+    .auth-error { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.35);
+      color: #fca5a5; padding: 0.75rem 1rem; border-radius: 10px; font-size: 0.875rem;
+      margin-bottom: 0.75rem; line-height: 1.45; }
+    .pw-input-wrap { position: relative; }
+    .pw-input-wrap input { padding-right: 2.9rem; }
+    .eye-btn { position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%);
+      background: none; border: none; cursor: pointer; color: var(--text-muted); padding: 0.25rem;
+      display: flex; align-items: center; justify-content: center; border-radius: 4px; transition: color 0.2s; }
+    .eye-btn:hover { color: var(--primary); }
+    .eye-svg { width: 18px; height: 18px; }
+    .otp-code-input { font-size: 1.85rem !important; text-align: center !important;
+      letter-spacing: 0.65rem !important; font-weight: 800 !important;
+      font-family: 'Courier New', monospace !important; color: var(--primary) !important; }
+    .otp-timer-row { display: flex; justify-content: space-between; align-items: center; margin-top: 0.85rem; }
+    .otp-timer-text { font-size: 0.82rem; color: var(--text-muted); }
+    .otp-resend-btn { background: none; border: 1px solid var(--card-border); color: var(--text-muted);
+      padding: 0.35rem 0.8rem; border-radius: 8px; cursor: pointer; font-size: 0.78rem;
+      font-family: inherit; transition: all 0.2s; }
+    .otp-resend-btn:not([disabled]):hover { border-color: var(--primary); color: var(--primary); }
+    .otp-resend-btn[disabled] { opacity: 0.4; cursor: not-allowed; }
+    .auth-reset-link { background: none; border: none; color: var(--text-muted); cursor: pointer;
+      font-size: 0.82rem; font-family: inherit; text-decoration: underline;
+      text-underline-offset: 3px; transition: color 0.2s; padding: 0; }
+    .auth-reset-link:hover { color: var(--primary); }
+    .auth-logo { font-size: 2.75rem; margin-bottom: 1rem; }
+  </style>
+</head>
+<body>
+  <!-- Custom Toast -->
+  <div id="toastContainer">
+    <div class="toast-icon" id="toastIcon">✅</div>
+    <div id="toastMessage">Success!</div>
+  </div>
+
+  <div class="container" id="app">
+    <header>
+      <div class="title-area">
+        <h1>Udom AI Manage Bot</h1>
+        <p>Make User can access Bot workflow</p>
+      </div>
+      <div class="admin-badge" style="cursor: pointer; position: relative;" onclick="toggleProfileDropdown(event)">
+        <span class="status-dot"></span> <span id="currentUserRole">Live Control Panel</span>
+        <div id="profileDropdown" style="display:none; position:absolute; right:0; top:calc(100% + 10px); background:var(--card-bg); border:1px solid var(--card-border); padding:1rem; border-radius:12px; min-width:220px; z-index:100; box-shadow:0 10px 25px -5px rgba(0,0,0,0.5); text-align: left;">
+            <div style="font-weight:700; font-size:1.1rem; color:#fff; margin-bottom:0.25rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" id="profileName">Loading...</div>
+            <div style="color:var(--primary); font-size:0.9rem; margin-bottom:1.5rem;" id="profileUsername">@loading</div>
+            <button class="btn btn-block" style="width:100%; display:block;" onclick="signOut(event)">Sign Out</button>
+        </div>
+      </div>
+    </header>
+
+    <div id="loginSection" style="display: none; padding: 3.5rem 1rem; min-height: 60vh; align-items: center; justify-content: center;">
+      <div class="settings-card" style="max-width: 440px; width: 100%; margin: 0 auto; text-align: left;">
+
+        <!-- ① Mode Selector -->
+        <div id="authModeSelector">
+          <div style="text-align:center; margin-bottom:2rem;">
+            <div class="auth-logo">🔐</div>
+            <h2 style="font-size:1.4rem; font-weight:800; background:linear-gradient(135deg,#a5b4fc,#6366f1); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">Authentication Required</h2>
+            <p style="color:var(--text-muted); margin-top:0.5rem; font-size:0.875rem;">Choose how you want to access the dashboard</p>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:0.85rem;">
+            <button class="auth-big-btn" onclick="showAuthMode('password')">
+              <span class="auth-btn-icon">🔑</span>
+              <div>
+                <div class="auth-btn-title">Login with Password</div>
+                <div class="auth-btn-sub">Returning user — enter your Telegram ID/Username &amp; password</div>
+              </div>
+            </button>
+            <button class="auth-big-btn auth-big-btn-alt" onclick="showAuthMode('otp')">
+              <span class="auth-btn-icon">✨</span>
+              <div>
+                <div class="auth-btn-title">New User / Reset Password</div>
+                <div class="auth-btn-sub">Verify via a 6-digit OTP sent to your Telegram</div>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- ② Password Login -->
+        <div id="authPasswordMode" style="display:none;">
+          <button class="auth-back-btn" onclick="showAuthMode(null)">← Back</button>
+          <h2 style="margin-bottom:1.5rem; font-size:1.2rem; font-weight:800;">Login to Dashboard</h2>
+          <div class="form-group">
+            <label>Telegram User ID or Username</label>
+            <input type="text" id="pwLoginUserId" placeholder="e.g. 123456789 or @username" onkeydown="if(event.key==='Enter')loginWithPassword()">
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <div class="pw-input-wrap">
+              <input type="password" id="pwLoginPassword" placeholder="Enter your password" onkeydown="if(event.key==='Enter')loginWithPassword()">
+              <button class="eye-btn" id="eyeBtnLogin" onclick="togglePwVisibility('pwLoginPassword','eyeBtnLogin')" title="Show password">
+                <svg class="eye-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
+          </div>
+          <div id="loginError" class="auth-error" style="display:none;"></div>
+          <button class="btn-save" style="width:100%; margin-bottom:0.75rem;" id="loginBtn" onclick="loginWithPassword()">Login</button>
+          <div style="text-align:center;">
+            <button class="auth-reset-link" onclick="startResetPassword()">Forgot password? Reset via OTP</button>
+          </div>
+        </div>
+
+        <!-- ③ OTP Step 1: Enter User ID -->
+        <div id="authOtpStep1" style="display:none;">
+          <button class="auth-back-btn" onclick="showAuthMode(null)">← Back</button>
+          <h2 style="margin-bottom:0.5rem; font-size:1.2rem; font-weight:800;" id="otpStep1Title">New User Setup</h2>
+          <p style="color:var(--text-muted); font-size:0.875rem; margin-bottom:1.5rem;" id="otpStep1Desc">Enter your Telegram User ID or Username. We’ll send a 6-digit OTP code directly to your Telegram.</p>
+          <div class="form-group">
+            <label>Telegram User ID or Username</label>
+            <input type="text" id="otpUserId" placeholder="e.g. 123456789 or @username" onkeydown="if(event.key==='Enter')requestOtp()">
+          </div>
+          <div id="otpStep1Error" class="auth-error" style="display:none;"></div>
+          <button class="btn-save" style="width:100%;" id="sendOtpBtn" onclick="requestOtp()">Send OTP to Telegram</button>
+        </div>
+
+        <!-- ④ OTP Step 2: Enter OTP -->
+        <div id="authOtpStep2" style="display:none;">
+          <button class="auth-back-btn" onclick="showOtpStep(1)">← Back</button>
+          <h2 style="margin-bottom:0.5rem; font-size:1.2rem; font-weight:800;">Enter OTP Code</h2>
+          <p style="color:var(--text-muted); font-size:0.875rem; margin-bottom:1.5rem;">A 6-digit code was sent to your Telegram. Enter it below.</p>
+          <div class="form-group">
+            <label>6-Digit OTP Code</label>
+            <input type="text" id="otpCodeInput" placeholder="000000" maxlength="6" inputmode="numeric" class="otp-code-input" onkeydown="if(event.key==='Enter')verifyOtp()" autocomplete="one-time-code">
+          </div>
+          <div class="otp-timer-row">
+            <span class="otp-timer-text" id="otpTimerDisplay">⏱ Expires in <strong id="otpTimerCount">5:00</strong></span>
+            <button class="otp-resend-btn" id="otpResendBtn" onclick="resendOtp()" disabled>Resend OTP</button>
+          </div>
+          <div id="otpStep2Error" class="auth-error" style="display:none; margin-top:0.75rem;"></div>
+          <button class="btn-save" style="width:100%; margin-top:1rem;" id="verifyOtpBtn" onclick="verifyOtp()">Verify OTP →</button>
+        </div>
+
+        <!-- ⑤ OTP Step 3: Create / Reset Password -->
+        <div id="authOtpStep3" style="display:none;">
+          <h2 style="margin-bottom:0.5rem; font-size:1.2rem; font-weight:800;" id="setPwTitle">Create Password</h2>
+          <p style="color:var(--text-muted); font-size:0.875rem; margin-bottom:1.5rem;" id="setPwDesc">Set a password so you can log in quickly next time.</p>
+          <div class="form-group">
+            <label>New Password</label>
+            <div class="pw-input-wrap">
+              <input type="password" id="setPwInput" placeholder="Min. 6 characters">
+              <button class="eye-btn" id="eyeBtnSet" onclick="togglePwVisibility('setPwInput','eyeBtnSet')" title="Show password">
+                <svg class="eye-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Confirm Password</label>
+            <div class="pw-input-wrap">
+              <input type="password" id="setPwConfirm" placeholder="Re-enter password" onkeydown="if(event.key==='Enter')setPassword()">
+              <button class="eye-btn" id="eyeBtnConfirm" onclick="togglePwVisibility('setPwConfirm','eyeBtnConfirm')" title="Show password">
+                <svg class="eye-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
+          </div>
+          <div id="setPwError" class="auth-error" style="display:none;"></div>
+          <button class="btn-save" style="width:100%;" id="setPwBtn" onclick="setPassword()">Create Password &amp; Login</button>
+        </div>
+
+      </div>
+    </div>
+
+    <div id="dashboardSection" style="display: none;">
+      <div class="nav-tabs" id="navTabs">
+        <!-- Tabs injected by JS based on role -->
+      </div>
+
+      <!-- Tab: Users -->
+      <div id="tab-users" class="tab-content active">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-title">Total Registered Users</div>
+            <div class="stat-value" id="stat-total">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-title">Approved Users</div>
+            <div class="stat-value" style="color: var(--success);" id="stat-approved">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-title">Blocked / Pending</div>
+            <div class="stat-value" style="color: var(--danger);" id="stat-blocked">0</div>
+          </div>
+        </div>
+
+        <div class="toolbar">
+          <div class="search-box">
+            <input type="text" id="searchInput" placeholder="Search users..." onkeyup="filterUsers()">
+          </div>
+          <div class="filter-tabs">
+            <button class="tab-btn active" onclick="setFilter('ALL', this)">All</button>
+            <button class="tab-btn" onclick="setFilter('APPROVED', this)">Approved</button>
+            <button class="tab-btn" onclick="setFilter('BLOCKED', this)">Blocked</button>
+          </div>
+        </div>
+
+        <div class="table-card">
+          <table>
+            <thead>
+              <tr>
+                <th>User</th>
+                <th>Telegram ID</th>
+                <th>Role</th>
+                <th>Joined / Active</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="userTableBody">
+            </tbody>
+          </table>
+        </div>
+        <div id="userPagination" class="pagination-controls"></div>
+      </div>
+
+      <!-- Tab: Schedule -->
+      <div id="tab-schedule" class="tab-content">
+        <div class="settings-card">
+          <h2 style="margin-bottom: 1.5rem;">Schedule Automations</h2>
+          <div class="form-group">
+            <label>Task Type</label>
+            <select id="scheduleTaskType" onchange="updateScheduleForm()">
+              <option value="send_message">Send Message to My Telegram</option>
+              <option value="daily_summary">Send Daily Bot Summary</option>
+              <option value="download">Download Media</option>
+              <option value="clip">Clip Video</option>
+              <option value="dubb">Dubb Video</option>
+              <option value="translate">Translate Text</option>
+              <option value="facebook_post">Post to Facebook</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Run Date &amp; Time (local time)</label>
+            <input type="datetime-local" id="scheduleTime" required>
+          </div>
+          <div class="form-group">
+            <label>Send via Bot</label>
+            <select id="scheduleBotToken">
+              <option value="main_bot">Main Bot (Default)</option>
+              <!-- Populated by JS -->
+            </select>
+            <p style="font-size:0.75rem; color:var(--text-muted); margin-top:0.25rem;">Select which bot should execute this scheduled task.</p>
+          </div>
+          
+          <!-- Dynamic Task Inputs -->
+          <div id="dynamicTaskInputs" style="background: var(--bg-dark); padding: 1rem; border-radius: 8px; border: 1px solid var(--card-border); margin-bottom: 1rem;">
+             <!-- Injected by JS -->
+          </div>
+          
+          <button id="btnSaveSchedule" class="btn-save" onclick="saveSchedule()">Save Schedule</button>
+        </div>
+        <div class="table-card">
+          <table>
+            <thead>
+              <tr>
+                <th>Task Type</th>
+                <th>Time</th>
+                <th>Status</th>
+                <th>Details</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="scheduleTableBody">
+            </tbody>
+          </table>
+        </div>
+        <div id="schedulePagination" class="pagination-controls"></div>
+      </div>
+
+      <!-- Tab: My Facebook -->
+      <div id="tab-my_facebook" class="tab-content">
+        <div class="settings-card" style="margin-bottom: 2rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+            <h2 style="margin: 0;">My Facebook Pages</h2>
+            <div>
+              <button class="btn btn-promote" onclick="exportFbPages()">Export</button>
+              <button class="btn btn-approve" onclick="document.getElementById('importFbPagesFile').click()">Import</button>
+              <input type="file" id="importFbPagesFile" style="display:none" accept=".json" onchange="importFbPages(event)">
+            </div>
+          </div>
+          <div style="background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem;">
+            <h4 style="margin: 0 0 0.5rem 0; color: #60a5fa;">🚀 Auto-Discover All Managed Pages via User Token</h4>
+            <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:0.75rem;">Paste your Facebook User Access Token (from developers.facebook.com/tools/accesstoken) to automatically discover and link all pages your account can post to:</p>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+              <input type="text" id="fbUserTokenInput" placeholder="EAAP..." style="flex: 1; min-width: 260px;">
+              <button class="btn btn-promote" id="btnSyncFbPages" onclick="syncFbPagesWithToken()">🔍 Auto-Sync All Pages</button>
+            </div>
+          </div>
+          <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:1rem;">Or manually add Facebook Pages below:</p>
+          <div style="display:flex; gap:1rem; flex-wrap:wrap; margin-bottom:1rem;">
+            <div class="form-group" style="flex:1; min-width: 200px; margin-bottom: 0;">
+              <label>Page Name</label>
+              <input type="text" id="my_fb_page_name" placeholder="e.g. My Awesome Page">
+            </div>
+            <div class="form-group" style="flex:1; min-width: 200px; margin-bottom: 0;">
+              <label>Page ID</label>
+              <input type="text" id="my_fb_page_id" placeholder="e.g. 10023456789">
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom:1rem;">
+            <label>Page Token</label>
+            <input type="text" id="my_fb_token" placeholder="EAAI...">
+          </div>
+          <button class="btn-save" id="saveFbPageBtn" onclick="addFbPage()">Add Page</button>
+        </div>
+        
+        <div class="table-card">
+          <table>
+            <thead>
+              <tr>
+                <th>Page Name</th>
+                <th>Page ID</th>
+                <th>Token</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="myFbPagesTableBody">
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Tab: Telegram Bots -->
+      <div id="tab-telegram_bots" class="tab-content">
+        <div class="settings-card" style="margin-bottom: 2rem;">
+          <h2 style="margin-bottom: 1.5rem;">Manage Custom Telegram Bots</h2>
+          <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:1rem;">Add your own Telegram Bot token to allow the system to send large files (up to 2GB) and bypass main bot limits.</p>
+          <div class="form-group" style="margin-bottom:1rem;">
+            <label>Bot Token</label>
+            <input type="text" id="tg_bot_token_input" placeholder="123456789:ABCDefghIJKL...">
+          </div>
+          <button class="btn-save" id="saveTgBotBtn" onclick="addTelegramBot()">Add Bot</button>
+        </div>
+        
+        <div class="table-card">
+          <table>
+            <thead>
+              <tr>
+                <th>Bot Name</th>
+                <th>Username</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="tgBotsTableBody">
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Tab: Settings -->
+      <div id="tab-settings" class="tab-content">
+        <div class="settings-card">
+          <h2 style="margin-bottom: 1.5rem;">System Settings</h2>
+          <div class="form-group">
+            <label>Admin Contact Handle (shown to blocked users)</label>
+            <input type="text" id="adminContact" placeholder="e.g. username">
+          </div>
+          <div class="form-group">
+            <label>Global OTP Bot</label>
+            <select id="otpBotToken">
+              <option value="main_bot">Main Bot (Default)</option>
+              <!-- Populated by JS -->
+            </select>
+            <p style="font-size:0.75rem; color:var(--text-muted); margin-top:0.25rem;">Select the bot that will send login OTP codes to users.</p>
+          </div>
+          <div class="form-group" style="display: flex; align-items: center; gap: 0.5rem; margin-top: 1rem;">
+            <input type="checkbox" id="otpBotRestrictedMode" style="width: auto; margin-bottom: 0;">
+            <label for="otpBotRestrictedMode" style="margin: 0; cursor: pointer;">Restrict Global OTP Bot (Permission Check Only)</label>
+          </div>
+          <p style="font-size:0.75rem; color:var(--text-muted); margin-top:0.25rem; margin-bottom:1rem;">If enabled, the Global OTP Bot will only check permissions and show Contact Admin / Open Web buttons instead of answering normal messages.</p>
+          <div class="form-group">
+            <label>Web Dashboard URL</label>
+            <input type="url" id="webappUrl" placeholder="e.g. http://your-ip:5000">
+            <p style="font-size:0.75rem; color:var(--text-muted); margin-top:0.25rem;">This URL is used for the 'Open Web' button in Telegram.</p>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));gap:1rem;margin-top:1.25rem;">
+            <div class="form-group">
+              <label>🎙️ Default Transcribe Engine</label>
+              <select id="defaultTranscribeEngine" style="width:100%;padding:10px 14px;border-radius:10px;border:1px solid var(--border-color);background:var(--input-bg);color:var(--text-color);">
+                <option value="gemini">🤖 Gemini AI API (Fast Cloud &amp; Timestamped)</option>
+                <option value="local">💻 Local AI (Faster-Whisper)</option>
+              </select>
+              <p style="font-size:0.75rem; color:var(--text-muted); margin-top:0.25rem;">Switch between Gemini API audio transcription and local Faster-Whisper models.</p>
+            </div>
+            <div class="form-group">
+              <label>🌐 Default Translate Engine</label>
+              <select id="defaultTranslateEngine" style="width:100%;padding:10px 14px;border-radius:10px;border:1px solid var(--border-color);background:var(--input-bg);color:var(--text-color);">
+                <option value="gemini">🤖 Gemini API (Cinematic Human Dubbing)</option>
+                <option value="local">💻 Local / Free AI (MyMemory &amp; GTX)</option>
+              </select>
+              <p style="font-size:0.75rem; color:var(--text-muted); margin-top:0.25rem;">Switch between Gemini API dialogue translation and local free endpoints.</p>
+            </div>
+          </div>
+          <div class="form-group" style="margin-top: 1.25rem;">
+            <label style="display:flex;justify-content:space-between;align-items:center;">
+              <span>🔑 Gemini API Keys (Multi-Key Rotation &amp; Auto-Failover)</span>
+              <button type="button" class="btn-save" style="padding:4px 10px;font-size:0.75rem;" onclick="testGeminiKeys()">⚡ Test All Keys</button>
+            </label>
+            <textarea id="geminiApiKeys" rows="4" style="width:100%;padding:10px 14px;border-radius:10px;border:1px solid var(--border-color);background:var(--input-bg);color:var(--text-color);font-family:monospace;font-size:0.85rem;" placeholder="AIzaSy...&#10;AIzaSy...&#10;AIzaSy..."></textarea>
+            <p style="font-size:0.75rem; color:var(--text-muted); margin-top:0.25rem;">Paste multiple Gemini API keys (one per line or comma-separated). If key 1 hits rate limits (429) or quota errors, the system automatically switches to key 2, key 3, etc.</p>
+            <div id="geminiKeysTestStatus" style="margin-top:0.5rem;font-size:0.8rem;display:none;"></div>
+          </div>
+          <button class="btn-save" onclick="saveSettings()">Save Settings</button>
+        </div>
+
+        <div class="settings-card" style="margin-top: 2rem;">
+          <h2 style="margin-bottom: 1.5rem;">Facebook Pages Permissions</h2>
+          <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:1rem;">Grant specific users access to select and post to System Facebook Pages.</p>
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Username</th>
+                  <th>Has Access</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="fbAccessTableBody">
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="settings-card" style="margin-top: 2rem;">
+          <h2 style="margin-bottom: 1.5rem;">User Configured Facebook Pages</h2>
+          <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:1rem;">List of Facebook Pages configured by users.</p>
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>User</th>
+                  <th>Username</th>
+                  <th>Configured Page ID</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="userFbPagesTableBody">
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: Logs -->
+      <div id="tab-logs" class="tab-content">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+          <h2>Live Bot Logs</h2>
+          <button class="btn-save" style="padding: 0.5rem 1rem;" onclick="fetchLogs()">Refresh Logs</button>
+        </div>
+        <div class="log-container" id="logContainer">
+          Loading logs...
+        </div>
+      </div>
+
+      <!-- Tab: YouTube Direct Downloader -->
+      <div id="tab-yt_download" class="tab-content">
+        <div class="yt-hero">
+          <div class="yt-hero-icon">▶️</div>
+          <h2 class="yt-hero-title">YouTube Direct Downloader</h2>
+          <p class="yt-hero-sub">Render extracts the stream link &mdash; your browser downloads directly from YouTube. No file touches the server.</p>
+        </div>
+
+        <div class="yt-search-box">
+          <div class="yt-input-row">
+            <input id="ytUrlInput" class="yt-url-input" type="url"
+              placeholder="Paste YouTube URL here &mdash; e.g. https://youtu.be/dQw4w9WgXcQ"
+              onkeydown="if(event.key==='Enter') ytFetchInfo()" />
+            <button class="yt-search-btn" id="ytSearchBtn" onclick="ytFetchInfo()">
+              <span id="ytSearchBtnText">🔍 Analyse</span>
+            </button>
+          </div>
+          <div id="ytError" class="yt-error" style="display:none"></div>
+        </div>
+
+        <div id="ytResult" style="display:none">
+          <div class="yt-card-meta">
+            <img id="ytThumb" class="yt-thumb" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E" alt="thumbnail" />
+            <div class="yt-meta-info">
+              <div id="ytTitle" class="yt-title"></div>
+              <div id="ytUploader" class="yt-uploader"></div>
+              <div id="ytDuration" class="yt-duration"></div>
+            </div>
+          </div>
+
+          <h3 class="yt-formats-heading">⚡ Available Formats</h3>
+          <div id="ytFormats" class="yt-formats-grid"></div>
+        </div>
+
+        <div id="ytDownloadProgress" class="yt-progress-box" style="display:none">
+          <div class="yt-spinner"></div>
+          <div id="ytProgressText" class="yt-progress-text">Getting stream URL from server...</div>
+          <div class="yt-progress-note">📡 Server is extracting the direct stream link. Once received, your browser will download directly from YouTube.</div>
+        </div>
+      </div>
+
+      <!-- Tab: Hongguo VIP Downloader -->
+      <div id="tab-hongguo_download" class="tab-content">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;background:var(--card-bg, #22222f);padding:14px 20px;border-radius:12px;border:1px solid var(--border-color, #33334a);">
+          <div>
+            <h2 style="font-size:1.2rem;font-weight:700;margin:0 0 4px 0;color:var(--text-color, #e8e8f0)">🎬 Hongguo VIP Downloader</h2>
+            <p style="margin:0;font-size:0.88rem;color:var(--text-muted, #888899)">Download full drama series, episodes, batch downloads, and stream directly.</p>
+          </div>
+          <div>
+            <a id="hgOpenFullBtn" href="/hongguo" target="_blank" class="btn-save" style="display:inline-flex;align-items:center;gap:6px;text-decoration:none;padding:10px 18px;font-size:0.9rem;font-weight:600;">
+              ↗ Open Full Window
+            </a>
+          </div>
+        </div>
+        <div style="width:100%;border-radius:14px;overflow:hidden;border:1px solid var(--border-color, #33334a);background:#0f0f13;box-shadow:0 8px 32px rgba(0,0,0,0.4);">
+          <iframe id="hongguoIframe" src="/downloader" style="width:100%;height:85vh;border:none;display:block;"></iframe>
+        </div>
+      </div>
+
+      <div id="tab-media_library" class="tab-content">
+        <div class="settings-card">
+          <h2>Local Media Library</h2>
+          <p style="color:var(--text-muted)">Browse and download authorized videos stored in the server media library folder (or MEDIA_LIBRARY_DIR). Place a matching .jpg, .jpeg, .png, or .webp thumbnail beside each video using the same filename stem.</p>
+          <div class="media-library-actions">
+            <button class="btn-save" onclick="loadMediaLibrary()">Refresh</button>
+            <button class="btn-save" onclick="selectAllMedia()">Select all</button>
+            <button class="btn-save" onclick="downloadSelectedMedia()">Download selected</button>
+            <button class="btn-save" onclick="downloadAllMedia()">Download all</button>
+          </div>
+          <div id="mediaLibraryStatus" class="empty-state">Choose Refresh to load local media.</div>
+          <div id="mediaLibraryItems" class="media-library-grid"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="./dashboard-config.js"></script>
+  <script>
+    const DEFAULT_BACKEND_API = '';
+    function decodeConfiguredBackend() {
+      if (!window.__UDOM_BACKEND__) return '';
+      try {
+        const binary = atob(window.__UDOM_BACKEND__);
+        const bytes = Uint8Array.from(binary, ch => ch.charCodeAt(0));
+        return new TextDecoder().decode(bytes);
+      } catch (e) {
+        return '';
+      }
+    }
+
+    function getApiBase() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const queryApiBase = urlParams.get('api') || urlParams.get('backend') || urlParams.get('dashboard_api');
+      if (queryApiBase) {
+        const cleanBase = queryApiBase.trim().replace(/\/$/, '');
+        localStorage.setItem('udomai_api_base', cleanBase);
+        return cleanBase;
+      }
+
+      const storedBase = localStorage.getItem('udomai_api_base');
+      if (storedBase) {
+        return storedBase.trim().replace(/\/$/, '');
+      }
+
+      const configuredBase = decodeConfiguredBackend();
+      if (configuredBase) {
+        return configuredBase.trim().replace(/\/$/, '');
+      }
+
+      return DEFAULT_BACKEND_API;
+    }
+
+    const originalFetch = window.fetch.bind(window);
+    window.fetch = function(input, init) {
+      let url = typeof input === 'string' ? input : (input && input.url) ? input.url : input;
+      if (typeof url === 'string' && url.startsWith('/api')) {
+        const apiBase = getApiBase();
+        const finalUrl = apiBase ? `${apiBase}${url}` : url;
+        return originalFetch(finalUrl, init);
+      }
+      return originalFetch(input, init);
+    };
+
+    function showToast(message, isError = false) {
+      const toast = document.getElementById('toastContainer');
+      document.getElementById('toastMessage').innerText = message;
+      document.getElementById('toastIcon').innerText = isError ? '❌' : '✅';
+      
+      if (isError) {
+        toast.style.boxShadow = '0 0 30px rgba(239, 68, 68, 0.4), 0 10px 25px rgba(0,0,0,0.6)';
+        toast.style.borderColor = 'rgba(239, 68, 68, 0.5)';
+      } else {
+        toast.style.boxShadow = '0 0 30px rgba(99, 102, 241, 0.4), 0 10px 25px rgba(0,0,0,0.6)';
+        toast.style.borderColor = 'rgba(99, 102, 241, 0.5)';
+      }
+      
+      toast.classList.add('show');
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 3000);
+    }
+
+    // ─── State ────────────────────────────────────────────────────
+    let sessionToken = localStorage.getItem('dash_session_token');
+    let allUsers = [];
+    let currentFilter = 'ALL';
+    let currentUser = null;
+    let currentUsersPage = 1;
+    let currentSchedulesPage = 1;
+    const itemsPerPage = 10;
+
+    // OTP flow state
+    let _otpUserId = '';
+    let _otpVerifiedToken = '';
+    let _otpTimerInterval = null;
+    let _otpExpiry = 0;
+
+    // ─── Auth UI Helpers ─────────────────────────────────────────────────
+    function showLoginSection() {
+      document.getElementById('loginSection').style.display = 'flex';
+      document.getElementById('dashboardSection').style.display = 'none';
+      showAuthMode(null);
+    }
+
+    function showAuthMode(mode) {
+      ['authModeSelector','authPasswordMode','authOtpStep1','authOtpStep2','authOtpStep3'].forEach(id => {
+        const el = document.getElementById(id); if (el) el.style.display = 'none';
+      });
+      if (!mode) {
+        document.getElementById('authModeSelector').style.display = 'block';
+      } else if (mode === 'password') {
+        document.getElementById('authPasswordMode').style.display = 'block';
+        setTimeout(() => document.getElementById('pwLoginUserId').focus(), 60);
+      } else if (mode === 'otp') {
+        document.getElementById('otpStep1Title').innerText = 'New User Setup';
+        document.getElementById('otpStep1Desc').innerText = "Enter your Telegram User ID. We'll send a 6-digit OTP code directly to your Telegram.";
+        document.getElementById('authOtpStep1').style.display = 'block';
+        setTimeout(() => document.getElementById('otpUserId').focus(), 60);
+      }
+    }
+
+    function showOtpStep(step) {
+      document.getElementById('authOtpStep1').style.display = step === 1 ? 'block' : 'none';
+      document.getElementById('authOtpStep2').style.display = step === 2 ? 'block' : 'none';
+      document.getElementById('authOtpStep3').style.display = step === 3 ? 'block' : 'none';
+    }
+
+    function startResetPassword() {
+      document.getElementById('authPasswordMode').style.display = 'none';
+      document.getElementById('otpStep1Title').innerText = 'Reset Password';
+      document.getElementById('otpStep1Desc').innerText = 'Verify your identity via Telegram OTP to reset your password.';
+      const loginId = document.getElementById('pwLoginUserId').value.trim();
+      if (loginId) document.getElementById('otpUserId').value = loginId;
+      document.getElementById('authOtpStep1').style.display = 'block';
+      setTimeout(() => document.getElementById('otpUserId').focus(), 60);
+    }
+
+    function getBackendUnavailableMessage() {
+      const apiBase = getApiBase();
+      if (apiBase) {
+        return `Unable to reach the dashboard backend at ${apiBase}. Check that the backend server is running and open this page with ?api=https://your-backend-url if needed.`;
+      }
+      return 'Unable to reach the dashboard backend. Start the bot/server, then reload this page or pass ?api=https://your-backend-url in the URL.';
+    }
+
+    function showAuthError(id, msg) {
+      const el = document.getElementById(id); if (el) { el.innerText = msg; el.style.display = 'block'; }
+    }
+    function hideAuthError(id) {
+      const el = document.getElementById(id); if (el) el.style.display = 'none';
+    }
+
+    const EYE_OPEN = '<svg class="eye-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+    const EYE_CLOSED = '<svg class="eye-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
+
+    function togglePwVisibility(inputId, btnId) {
+      const input = document.getElementById(inputId);
+      const btn = document.getElementById(btnId);
+      if (!input || !btn) return;
+      const showing = input.type === 'text';
+      input.type = showing ? 'password' : 'text';
+      btn.innerHTML = showing ? EYE_OPEN : EYE_CLOSED;
+      btn.style.color = showing ? '' : 'var(--primary)';
+      btn.title = showing ? 'Show password' : 'Hide password';
+    }
+
+    function startOtpTimer() {
+      _otpExpiry = Date.now() + 5 * 60 * 1000;
+      const resendBtn = document.getElementById('otpResendBtn');
+      if (resendBtn) resendBtn.disabled = true;
+      if (_otpTimerInterval) clearInterval(_otpTimerInterval);
+      _otpTimerInterval = setInterval(() => {
+        const rem = Math.max(0, _otpExpiry - Date.now());
+        const m = Math.floor(rem / 60000);
+        const s = Math.floor((rem % 60000) / 1000);
+        const el = document.getElementById('otpTimerCount');
+        if (el) el.innerText = `${m}:${s.toString().padStart(2,'0')}`;
+        if (rem === 0) {
+          clearInterval(_otpTimerInterval);
+          if (resendBtn) resendBtn.disabled = false;
+          const disp = document.getElementById('otpTimerDisplay');
+          if (disp) disp.innerHTML = '\u26a0\ufe0f <span style="color:var(--warning)">OTP expired \u2014 click Resend</span>';
+        }
+      }, 1000);
+    }
+
+    // ─── OTP / Password Auth API Calls ─────────────────────────────────────
+    async function requestOtp() {
+      const userId = document.getElementById('otpUserId').value.trim();
+      hideAuthError('otpStep1Error');
+      if (!userId) { showAuthError('otpStep1Error', 'Please enter your Telegram User ID.'); return; }
+      const btn = document.getElementById('sendOtpBtn');
+      btn.innerText = 'Sending\u2026'; btn.disabled = true;
+      try {
+        const res = await fetch('/api/auth/request-otp', {
+          method: 'POST', headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({user_id: userId})
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          _otpUserId = userId;
+          document.getElementById('otpCodeInput').value = '';
+          hideAuthError('otpStep2Error');
+          document.getElementById('otpTimerDisplay').innerHTML = '\u23f1 Expires in <strong id="otpTimerCount">5:00</strong>';
+          document.getElementById('otpResendBtn').disabled = true;
+          showOtpStep(2);
+          startOtpTimer();
+          setTimeout(() => document.getElementById('otpCodeInput').focus(), 60);
+        } else {
+          showAuthError('otpStep1Error', data.error || 'Failed to send OTP. Please try again.');
+        }
+      } catch (e) {
+        showAuthError('otpStep1Error', getBackendUnavailableMessage());
+      }
+      finally { btn.innerText = 'Send OTP to Telegram'; btn.disabled = false; }
+    }
+
+    async function resendOtp() {
+      hideAuthError('otpStep2Error');
+      document.getElementById('otpResendBtn').disabled = true;
+      document.getElementById('otpTimerDisplay').innerHTML = '\u23f1 Expires in <strong id="otpTimerCount">5:00</strong>';
+      try {
+        const res = await fetch('/api/auth/request-otp', {
+          method: 'POST', headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({user_id: _otpUserId})
+        });
+        const data = await res.json();
+        if (res.ok && data.success) { startOtpTimer(); showToast('\u2705 New OTP sent to your Telegram!'); }
+        else { showAuthError('otpStep2Error', data.error || 'Failed to resend.'); document.getElementById('otpResendBtn').disabled = false; }
+      } catch (e) {
+        showAuthError('otpStep2Error', getBackendUnavailableMessage());
+        document.getElementById('otpResendBtn').disabled = false;
+      }
+    }
+
+    async function verifyOtp() {
+      const otp = document.getElementById('otpCodeInput').value.trim();
+      hideAuthError('otpStep2Error');
+      if (!otp || otp.length !== 6 || !/^\d{6}$/.test(otp)) {
+        showAuthError('otpStep2Error', 'Please enter the 6-digit OTP (numbers only).'); return;
+      }
+      const btn = document.getElementById('verifyOtpBtn');
+      btn.innerText = 'Verifying\u2026'; btn.disabled = true;
+      try {
+        const res = await fetch('/api/auth/verify-otp', {
+          method: 'POST', headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({user_id: _otpUserId, otp})
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          clearInterval(_otpTimerInterval);
+          _otpVerifiedToken = data.otp_verified_token;
+          document.getElementById('setPwInput').value = '';
+          document.getElementById('setPwConfirm').value = '';
+          hideAuthError('setPwError');
+          showOtpStep(3);
+          setTimeout(() => document.getElementById('setPwInput').focus(), 60);
+        } else {
+          showAuthError('otpStep2Error', data.error || 'Invalid OTP. Please try again.');
+        }
+      } catch (e) { showAuthError('otpStep2Error', getBackendUnavailableMessage()); }
+      finally { btn.innerText = 'Verify OTP \u2192'; btn.disabled = false; }
+    }
+
+    async function setPassword() {
+      const pw = document.getElementById('setPwInput').value;
+      const pw2 = document.getElementById('setPwConfirm').value;
+      hideAuthError('setPwError');
+      if (!pw || pw.length < 6) { showAuthError('setPwError', 'Password must be at least 6 characters.'); return; }
+      if (pw !== pw2) { showAuthError('setPwError', 'Passwords do not match.'); return; }
+      const btn = document.getElementById('setPwBtn');
+      btn.innerText = 'Saving\u2026'; btn.disabled = true;
+      try {
+        const res = await fetch('/api/auth/set-password', {
+          method: 'POST', headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({otp_verified_token: _otpVerifiedToken, password: pw})
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          sessionToken = data.session_token;
+          localStorage.setItem('dash_session_token', sessionToken);
+          showToast('\u2705 Password set! Logging you in\u2026');
+          setTimeout(() => initDashboard(), 700);
+        } else {
+          showAuthError('setPwError', data.error || 'Failed to set password. Please try again.');
+        }
+      } catch (e) { showAuthError('setPwError', getBackendUnavailableMessage()); }
+      finally { btn.innerText = 'Create Password & Login'; btn.disabled = false; }
+    }
+
+    async function loginWithPassword() {
+      const userId = document.getElementById('pwLoginUserId').value.trim();
+      const pw = document.getElementById('pwLoginPassword').value;
+      hideAuthError('loginError');
+      if (!userId) { showAuthError('loginError', 'Please enter your Admin Username or Telegram User ID.'); return; }
+      if (!pw) { showAuthError('loginError', 'Please enter your password.'); return; }
+      const btn = document.getElementById('loginBtn');
+      btn.innerText = 'Logging in\u2026'; btn.disabled = true;
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST', headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({user_id: userId, password: pw})
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          sessionToken = data.session_token;
+          localStorage.setItem('dash_session_token', sessionToken);
+          showToast('\u2705 Login successful!');
+          setTimeout(() => initDashboard(), 500);
+        } else if (data.need_otp) {
+          showAuthError('loginError', 'No password set yet. Use "New User / OTP" to create one first.');
+        } else {
+          showAuthError('loginError', data.error || 'Login failed. Please check your credentials.');
+        }
+      } catch (e) { showAuthError('loginError', getBackendUnavailableMessage()); }
+      finally { btn.innerText = 'Login'; btn.disabled = false; }
+    }
+
+    async function initDashboard() {
+      try {
+        const res = await fetch(`/api/me?token=${sessionToken}`);
+        if (res.ok) {
+          currentUser = await res.json();
+          document.getElementById('loginSection').style.display = 'none';
+          document.getElementById('dashboardSection').style.display = 'block';
+          setupTabs();
+          if (currentUser.role === 'SUPER_ADMIN' || currentUser.role === 'ADMIN') fetchUsers();
+          if (currentUser.role === 'SUPER_ADMIN') fetchSettings();
+          fetchTelegramBots();
+          fetchSchedules();
+          fetchMyFacebook();
+        } else {
+          localStorage.removeItem('dash_session_token');
+          sessionToken = null;
+          showLoginSection();
+        }
+      } catch (err) { console.error(err); showLoginSection(); }
+    }
+
+    async function checkAuth() {
+      sessionToken = localStorage.getItem('dash_session_token');
+      if (!sessionToken) { showLoginSection(); return; }
+      await initDashboard();
+    }
+
+
+    function setupTabs() {
+      const navTabs = document.getElementById('navTabs');
+      let tabsHtml = '';
+      const role = currentUser.role || 'USER';
+      
+      const fullName = `${currentUser.first_name || ''} ${currentUser.last_name || ''}`.trim() || 'Anonymous User';
+      document.getElementById('profileName').innerText = fullName;
+      document.getElementById('profileUsername').innerText = currentUser.username ? `@${currentUser.username}` : 'No username';
+      document.getElementById('currentUserRole').innerText = fullName;
+
+      if (role === 'SUPER_ADMIN' || role === 'ADMIN') {
+        tabsHtml += `<button class="nav-tab" onclick="switchTab('users', this)">Users</button>`;
+      }
+      tabsHtml += `<button class="nav-tab" onclick="switchTab('schedule', this)">My Schedule</button>`;
+      tabsHtml += `<button class="nav-tab" onclick="switchTab('telegram_bots', this)">Telegram Bots</button>`;
+      tabsHtml += `<button class="nav-tab" onclick="switchTab('my_facebook', this)">My Facebook Page</button>`;
+      tabsHtml += `<button class="nav-tab" onclick="switchTab('yt_download', this)">🎥 YT Download</button>`;
+      tabsHtml += `<button class="nav-tab" onclick="switchTab('hongguo_download', this)">🎬 Hongguo VIP</button>`;
+      tabsHtml += `<button class="nav-tab" onclick="switchTab('media_library', this)">📁 Media Library</button>`;
+      
+      if (role === 'SUPER_ADMIN') {
+        tabsHtml += `<button class="nav-tab" onclick="switchTab('settings', this)">Settings</button>`;
+        tabsHtml += `<button class="nav-tab" onclick="switchTab('logs', this)">Logs</button>`;
+      }
+      
+      navTabs.innerHTML = tabsHtml;
+
+      // Determine default tab based on URL param or role
+      let defaultTab = (role === 'SUPER_ADMIN' || role === 'ADMIN') ? 'users' : 'schedule';
+      const urlParams = new URLSearchParams(window.location.search);
+      const encodedPage = urlParams.get('p');
+      if (encodedPage) {
+        try {
+          const decodedPage = atob(encodedPage);
+          if (['users', 'schedule', 'my_facebook', 'settings', 'logs', 'media_library', 'yt_download', 'hongguo_download'].includes(decodedPage)) {
+            // Check permissions for the decoded page
+            if (decodedPage === 'users' && role === 'USER') {}
+            else if ((decodedPage === 'settings' || decodedPage === 'logs') && role !== 'SUPER_ADMIN') {}
+            else {
+              defaultTab = decodedPage;
+            }
+          }
+        } catch(e) {}
+      }
+
+      // Initial activation
+      switchTab(defaultTab, null, true);
+    }
+
+    function switchTab(tabId, btn, isInitial = false) {
+      document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
+      if (btn) {
+        btn.classList.add('active');
+      } else {
+        const foundBtn = document.querySelector(`.nav-tab[onclick*="'${tabId}'"]`);
+        if (foundBtn) foundBtn.classList.add('active');
+      }
+      
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+      const targetTab = document.getElementById(`tab-${tabId}`);
+      if (targetTab) targetTab.classList.add('active');
+      
+      // Update URL with Base64 encoding ("encryption")
+      const newUrl = `/?p=${btoa(tabId)}`;
+      if (window.location.search !== `?p=${btoa(tabId)}`) {
+        if (isInitial) {
+          window.history.replaceState({tab: tabId}, '', newUrl);
+        } else {
+          window.history.pushState({tab: tabId}, '', newUrl);
+        }
+      }
+      
+      if (tabId === 'logs') fetchLogs();
+      if (tabId === 'my_facebook') fetchMyFacebook();
+      if (tabId === 'telegram_bots') fetchTelegramBots();
+      if (tabId === 'media_library') loadMediaLibrary();
+      if (tabId === 'hongguo_download') {
+        const iframe = document.getElementById('hongguoIframe');
+        const targetSrc = `/downloader?token=${encodeURIComponent(sessionToken)}`;
+        if (iframe && (!iframe.src || !iframe.src.includes('token='))) {
+          iframe.src = targetSrc;
+        }
+        const openBtn = document.getElementById('hgOpenFullBtn');
+        if (openBtn) {
+          openBtn.href = `/hongguo?token=${encodeURIComponent(sessionToken)}`;
+        }
+      }
+    }
+    
+    window.addEventListener('popstate', (e) => {
+      if (e.state && e.state.tab) {
+        switchTab(e.state.tab, null, true);
+      }
+    });
+
+    // Settings
+    async function fetchSettings() {
+      try {
+        const res = await fetch(`/api/settings?token=${sessionToken}`);
+        if (res.ok) {
+          const data = await res.json();
+          document.getElementById('adminContact').value = data.admin_contact || '';
+          const otpSelect = document.getElementById('otpBotToken');
+          if (otpSelect) {
+              if (otpSelect.tagName === 'SELECT') {
+                  otpSelect.dataset.serverValue = data.otp_bot_token || 'main_bot';
+                  if (otpSelect.options.length > 1) { 
+                      otpSelect.value = data.otp_bot_token || 'main_bot';
+                  }
+              } else {
+                  otpSelect.value = data.otp_bot_token || '';
+              }
+          }
+          const restrictedCb = document.getElementById('otpBotRestrictedMode');
+          if (restrictedCb) {
+              restrictedCb.checked = !!data.otp_bot_restricted_mode;
+          }
+          document.getElementById('webappUrl').value = data.webapp_url || '';
+          const trEngineSelect = document.getElementById('defaultTranscribeEngine');
+          if (trEngineSelect) trEngineSelect.value = data.default_transcribe_engine || 'gemini';
+          const tlEngineSelect = document.getElementById('defaultTranslateEngine');
+          if (tlEngineSelect) tlEngineSelect.value = data.default_translate_engine || 'gemini';
+          const geminiBox = document.getElementById('geminiApiKeys');
+          if (geminiBox) geminiBox.value = data.gemini_api_keys || '';
+        }
+      } catch (err) { console.error(err); }
+    }
+    
+    async function saveSettings() {
+      try {
+        const payload = { 
+            admin_contact: document.getElementById('adminContact').value,
+            otp_bot_token: document.getElementById('otpBotToken').value.trim(),
+            otp_bot_restricted_mode: document.getElementById('otpBotRestrictedMode') ? document.getElementById('otpBotRestrictedMode').checked : false,
+            webapp_url: document.getElementById('webappUrl').value.trim(),
+            default_transcribe_engine: document.getElementById('defaultTranscribeEngine') ? document.getElementById('defaultTranscribeEngine').value : 'gemini',
+            default_translate_engine: document.getElementById('defaultTranslateEngine') ? document.getElementById('defaultTranslateEngine').value : 'gemini',
+            gemini_api_keys: document.getElementById('geminiApiKeys') ? document.getElementById('geminiApiKeys').value.trim() : ''
+        };
+        const res = await fetch(`/api/settings?token=${sessionToken}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+          showToast('Settings saved!');
+          const otpSelect = document.getElementById('otpBotToken');
+          if (otpSelect) otpSelect.dataset.serverValue = payload.otp_bot_token || 'main_bot';
+        }
+      } catch (err) { showToast('Failed to save', true); }
+    }
+
+    async function testGeminiKeys() {
+      const statusDiv = document.getElementById('geminiKeysTestStatus');
+      if (!statusDiv) return;
+      statusDiv.style.display = 'block';
+      statusDiv.innerHTML = '<span style="color:var(--text-muted)">⏳ Testing configured keys...</span>';
+      try {
+        const res = await fetch(`/api/gemini/test?token=${sessionToken}`);
+        if (res.ok) {
+          const data = await res.json();
+          const results = data.results || [];
+          if (results.length === 0) {
+            statusDiv.innerHTML = '<span style="color:#ff6b6b">⚠️ No keys found to test. Please add at least one key above and click Save.</span>';
+            return;
+          }
+          let html = '<div style="display:flex;flex-direction:column;gap:6px;margin-top:6px;">';
+          for (const item of results) {
+            const badge = item.status === 'ACTIVE' 
+              ? `<span style="color:#06d6a0;font-weight:700">✅ ACTIVE (${item.model})</span>`
+              : `<span style="color:#ff6b6b;font-weight:700">❌ ${item.status}: ${item.error || 'Failed'}</span>`;
+            html += `<div style="padding:6px 10px;background:rgba(255,255,255,0.05);border-radius:6px;display:flex;justify-content:space-between;align-items:center;"><code>${item.key}</code> ${badge}</div>`;
+          }
+          html += '</div>';
+          statusDiv.innerHTML = html;
+        } else {
+          statusDiv.innerHTML = '<span style="color:#ff6b6b">❌ Failed to test keys.</span>';
+        }
+      } catch (err) {
+        statusDiv.innerHTML = `<span style="color:#ff6b6b">❌ Error testing keys: ${err.message}</span>`;
+      }
+    }
+
+    // Logs
+    async function fetchLogs() {
+      try {
+        const res = await fetch(`/api/logs?token=${sessionToken}`);
+        if (res.ok) {
+          const text = await res.text();
+          const lc = document.getElementById('logContainer');
+          lc.innerText = text || 'No logs yet.';
+          lc.scrollTop = lc.scrollHeight;
+        }
+      } catch (err) { console.error(err); }
+    }
+
+    // Users
+    async function fetchUsers() {
+      try {
+        const res = await fetch(`/api/users?token=${sessionToken}`);
+        if (res.ok) {
+          allUsers = await res.json();
+          renderDashboard();
+        }
+      } catch (err) { console.error("Error fetching users:", err); }
+    }
+
+    function renderDashboard() {
+      const search = document.getElementById('searchInput').value.toLowerCase();
+      const tbody = document.getElementById('userTableBody');
+      
+      let approvedCount = 0;
+      let blockedCount = 0;
+
+      allUsers.forEach(u => {
+        if (u.status === 'APPROVED') approvedCount++;
+        else blockedCount++;
+      });
+
+      document.getElementById('stat-total').innerText = allUsers.length;
+      document.getElementById('stat-approved').innerText = approvedCount;
+      document.getElementById('stat-blocked').innerText = blockedCount;
+      
+      const adminContactSelect = document.getElementById('adminContact');
+      const currentAdminContact = adminContactSelect.value;
+      adminContactSelect.innerHTML = '<option value="">Select an Admin...</option>';
+      allUsers.forEach(u => {
+          if (u.user_id === '__system_config__') return;
+          if (u.role === 'SUPER_ADMIN' || u.role === 'ADMIN') {
+              const handle = u.username ? u.username : u.user_id;
+              const displayName = `${u.first_name || ''} ${u.last_name || ''}`.trim() || handle;
+              const option = document.createElement('option');
+              option.value = handle;
+              option.textContent = `@${handle} - ${displayName}`;
+              if (handle === currentAdminContact) {
+                  option.selected = true;
+              }
+              adminContactSelect.appendChild(option);
+          }
+      });
+
+      const filtered = allUsers.filter(u => {
+        if(u.user_id === '__system_config__') return false; // Ignore config entry
+        const matchesFilter = (currentFilter === 'ALL') || (u.status === currentFilter);
+        const nameStr = `${u.first_name || ''} ${u.last_name || ''} ${u.username || ''} ${u.user_id}`.toLowerCase();
+        const matchesSearch = nameStr.includes(search);
+        return matchesFilter && matchesSearch;
+      });
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="empty-state">No matching users found.</td></tr>`;
+        document.getElementById('userPagination').innerHTML = '';
+        return;
+      }
+
+      const totalPages = Math.ceil(filtered.length / itemsPerPage) || 1;
+      if (currentUsersPage > totalPages) currentUsersPage = totalPages;
+      if (currentUsersPage < 1) currentUsersPage = 1;
+
+      const paginated = filtered.slice((currentUsersPage - 1) * itemsPerPage, currentUsersPage * itemsPerPage);
+
+      tbody.innerHTML = paginated.map(u => {
+        const fullName = `${u.first_name || ''} ${u.last_name || ''}`.trim() || 'Anonymous User';
+        const handle = u.username ? `<a href="https://t.me/${u.username}" target="_blank" class="user-handle">@${u.username}</a>` : '<span style="color:#6b7280;">No username</span>';
+        const isApproved = u.status === 'APPROVED';
+        const role = u.role || 'USER';
+        
+        let roleBadge = `<span class="badge badge-role">${role}</span>`;
+        if(role === 'SUPER_ADMIN') roleBadge = `<span class="badge badge-super">${role}</span>`;
+        
+        let actionButtons = '<div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: nowrap;">';
+        if (u.user_id != currentUser.user_id) {
+            if (currentUser.role === 'SUPER_ADMIN' || (currentUser.role === 'ADMIN' && role !== 'SUPER_ADMIN')) {
+                actionButtons += `<button class="btn ${isApproved ? 'btn-block' : 'btn-approve'}" onclick="toggleUser('${u.user_id}')">
+                  ${isApproved ? '🚫 Block' : '✅ Approve'}
+                </button>`;
+            }
+            if (currentUser.role === 'SUPER_ADMIN') {
+                if (role === 'USER') {
+                     actionButtons += `<button class="btn btn-promote" onclick="promoteUser('${u.user_id}', 'ADMIN')">Promote Admin</button>`;
+                } else if (role === 'ADMIN') {
+                     actionButtons += `<button class="btn btn-promote" onclick="promoteUser('${u.user_id}', 'USER')">Unpromote Admin</button>`;
+                }
+                actionButtons += `<button class="btn btn-promote" onclick="openAssignServerModal('${u.user_id}', '${u.assigned_server || 'main'}', '${encodeURIComponent(fullName)}')">🖥 Srv: ${u.assigned_server || 'main'}</button>`;
+                actionButtons += `<button class="btn btn-approve" onclick="toggleMultipleBots('${u.user_id}')">Set Max Bots</button>`;
+                actionButtons += `<button class="btn btn-block" style="background:#6b7280;" onclick="removeUser('${u.user_id}')">🗑 Remove</button>`;
+            }
+        }
+        actionButtons += '</div>';
+
+        return `
+          <tr>
+            <td>
+              <div class="user-info">
+                <span class="user-name">${fullName}</span>
+                ${handle}
+              </div>
+            </td>
+            <td><code>${u.user_id}</code></td>
+            <td>${roleBadge}</td>
+            <td style="font-size:0.8rem; color:var(--text-muted);">
+              <div>Joined: ${u.joined_at || '-'}</div>
+              <div>Active: ${u.last_active || '-'}</div>
+            </td>
+            <td>
+              <span class="badge ${isApproved ? 'badge-approved' : 'badge-blocked'}">
+                ${isApproved ? '✅ Approved' : '⛔️ Blocked'}
+              </span>
+            </td>
+            <td>${actionButtons}</td>
+          </tr>
+        `;
+      }).join('');
+
+      document.getElementById('userPagination').innerHTML = `
+        <button ${currentUsersPage <= 1 ? 'disabled' : ''} onclick="currentUsersPage--; renderDashboard()">Previous</button>
+        <span class="pagination-info">Page ${currentUsersPage} of ${totalPages}</span>
+        <button ${currentUsersPage >= totalPages ? 'disabled' : ''} onclick="currentUsersPage++; renderDashboard()">Next</button>
+      `;
+      
+      renderFbAccessTable();
+      renderUserFbPagesTable();
+    }
+    
+    function renderFbAccessTable() {
+        const tbody = document.getElementById('fbAccessTableBody');
+        if (!tbody) return;
+        tbody.innerHTML = allUsers.map(u => {
+            if (u.user_id === '__system_config__') return '';
+            const fullName = `${u.first_name || ''} ${u.last_name || ''}`.trim() || 'Anonymous';
+            const handle = u.username ? `@${u.username}` : '';
+            
+            const accessList = Array.isArray(u.fb_pages_access) ? u.fb_pages_access : (u.fb_pages_access === true ? ['aimovie', 'livealone'] : []);
+            const hasAiMovie = accessList.includes('aimovie');
+            const hasLiveAlone = accessList.includes('livealone');
+            const hasAccess = hasAiMovie || hasLiveAlone;
+            
+            // Super admins inherently have access, so we can indicate that
+            let statusBadge = hasAccess ? '<span class="badge badge-approved">✅ Granted</span>' : '<span class="badge badge-blocked">❌ Denied</span>';
+            if (u.role === 'SUPER_ADMIN') {
+                statusBadge = '<span class="badge badge-approved">👑 Super Admin (Auto-Granted)</span>';
+            }
+            
+            let btnHtml = '';
+            if (u.role === 'SUPER_ADMIN') {
+                btnHtml = '';
+            } else {
+                const aiBtnClass = hasAiMovie ? 'btn-block' : 'btn-approve';
+                const aiBtnText = hasAiMovie ? 'Revoke AI Movie' : 'Grant AI Movie';
+                
+                const liveBtnClass = hasLiveAlone ? 'btn-block' : 'btn-approve';
+                const liveBtnText = hasLiveAlone ? 'Revoke LiveAlone' : 'Grant LiveAlone';
+                
+                btnHtml = `
+                    <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+                        <button class="btn ${aiBtnClass}" onclick="toggleFbAccess('${u.user_id}', 'aimovie')">${aiBtnText}</button>
+                        <button class="btn ${liveBtnClass}" onclick="toggleFbAccess('${u.user_id}', 'livealone')">${liveBtnText}</button>
+                    </div>
+                `;
+            }
+            
+            return `
+                <tr>
+                    <td>${fullName}</td>
+                    <td>${handle}</td>
+                    <td>${statusBadge}</td>
+                    <td>${btnHtml}</td>
+                </tr>
+            `;
+        }).join('');
+    }
+    
+    function renderUserFbPagesTable() {
+        const tbody = document.getElementById('userFbPagesTableBody');
+        if (!tbody) return;
+        
+        let html = '';
+        allUsers.forEach(u => {
+            if (u.user_id === '__system_config__') return;
+            
+            let pages = [];
+            if (u.fb_pages && u.fb_pages.length > 0) {
+                pages = u.fb_pages;
+            } else if (u.fb_page_id) {
+                pages = [{page_id: u.fb_page_id, page_name: "Legacy Page"}];
+            }
+            
+            if (pages.length > 0) {
+                const fullName = `${u.first_name || ''} ${u.last_name || ''}`.trim() || 'Anonymous';
+                const handle = u.username ? `@${u.username}` : '';
+                
+                pages.forEach(p => {
+                    html += `
+                        <tr>
+                            <td>${fullName}</td>
+                            <td>${handle}</td>
+                            <td><code>${p.page_id}</code></td>
+                            <td>
+                                <button class="btn-danger" style="padding: 0.3rem 0.6rem; font-size: 0.85rem;" onclick="deleteUserFbPage('${u.user_id}', '${p.page_id}')">Delete</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            }
+        });
+        
+        if (html === '') {
+            html = `<tr><td colspan="4" class="empty-state">No users have configured a custom Facebook page yet.</td></tr>`;
+        }
+        
+        tbody.innerHTML = html;
+    }
+
+    async function deleteUserFbPage(userId, pageId) {
+        if (!confirm('Are you sure you want to delete this Facebook page configuration for this user?')) return;
+        
+        try {
+            const res = await fetch('/api/admin/delete_facebook_page', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': sessionToken
+                },
+                body: JSON.stringify({ user_id: userId, page_id: pageId })
+            });
+            const data = await res.json();
+            if (data.success) {
+                showToast('User Facebook page deleted successfully.');
+                fetchUsers(); // refresh table
+            } else {
+                showToast(data.error || 'Failed to delete Facebook page.', true);
+            }
+        } catch (err) {
+            console.error(err);
+            showToast('An error occurred.', true);
+        }
+    }
+
+
+
+    let myFbPagesList = [];
+
+    async function fetchMyFacebook() {
+        try {
+            const res = await fetch(`/api/my_facebook?token=${sessionToken}`);
+            if (res.ok) {
+                const data = await res.json();
+                myFbPagesList = data.fb_pages || [];
+                renderMyFbPages();
+            }
+        } catch (err) { console.error(err); }
+    }
+
+    function renderMyFbPages() {
+        const tbody = document.getElementById('myFbPagesTableBody');
+        if (!tbody) return;
+        
+        if (myFbPagesList.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="4" class="empty-state">No pages saved yet.</td></tr>`;
+            return;
+        }
+        
+        tbody.innerHTML = myFbPagesList.map((p, index) => {
+            const tokenPreview = p.page_token ? p.page_token.substring(0, 15) + '...' : '';
+            return `
+                <tr>
+                    <td style="font-weight:bold;">${p.page_name || 'Unnamed Page'}</td>
+                    <td><code>${p.page_id}</code></td>
+                    <td><code style="color:var(--text-muted)">${tokenPreview}</code></td>
+                    <td>
+                        <button class="btn btn-promote" style="margin-right:0.5rem;" onclick="editFbPage(${index})">✏️ Edit</button>
+                        <button class="btn btn-block" onclick="removeFbPage(${index})">🗑 Remove</button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    async function syncFbPagesWithToken() {
+        const tokenInput = document.getElementById('fbUserTokenInput');
+        const token = tokenInput ? tokenInput.value.trim() : '';
+        if (!token) {
+            showToast("Please paste your Facebook User Access Token first.", true);
+            return;
+        }
+        const btn = document.getElementById('btnSyncFbPages');
+        if (btn) { btn.innerText = "⏳ Syncing..."; btn.disabled = true; }
+        try {
+            const res = await fetch(`/api/facebook/sync_pages?token=${sessionToken}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user_token: token })
+            });
+            const data = await res.json();
+            if (res.ok && data.success) {
+                showToast(`✅ Discovered and synced ${data.count} Facebook Page(s)!`);
+                fetchMyFacebook();
+            } else {
+                showToast(data.error || "Failed to sync pages.", true);
+            }
+        } catch (e) {
+            showToast("Network error syncing Facebook pages.", true);
+        } finally {
+            if (btn) { btn.innerText = "🔍 Auto-Sync All Pages"; btn.disabled = false; }
+        }
+    }
+
+    async function saveMyFbPagesList() {
+        try {
+            const res = await fetch(`/api/my_facebook?token=${sessionToken}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ fb_pages: myFbPagesList })
+            });
+            if (res.ok) {
+                showToast('Pages updated successfully!');
+            } else {
+                showToast('Failed to update pages', true);
+            }
+        } catch (err) { 
+            showToast('Error updating pages', true); 
+        }
+    }
+
+    let editFbPageIndex = -1;
+
+    function editFbPage(index) {
+        const p = myFbPagesList[index];
+        if (!p) return;
+        document.getElementById('my_fb_page_name').value = p.page_name || '';
+        document.getElementById('my_fb_page_id').value = p.page_id || '';
+        document.getElementById('my_fb_token').value = p.page_token || '';
+        editFbPageIndex = index;
+        document.getElementById('saveFbPageBtn').innerText = 'Update Page';
+    }
+
+    function addFbPage() {
+        const name = document.getElementById('my_fb_page_name')?.value.trim();
+        const pageId = document.getElementById('my_fb_page_id')?.value.trim();
+        const token = document.getElementById('my_fb_token')?.value.trim();
+        
+        if (!pageId || !token) {
+            showToast('Page ID and Token are required!', true);
+            return;
+        }
+        
+        if (editFbPageIndex !== -1) {
+            myFbPagesList[editFbPageIndex] = {
+                page_name: name || pageId,
+                page_id: pageId,
+                page_token: token
+            };
+            editFbPageIndex = -1;
+            const btn = document.getElementById('saveFbPageBtn');
+            if(btn) btn.innerText = 'Add Page';
+            showToast('Page updated!');
+        } else {
+            myFbPagesList.push({
+                page_name: name || pageId,
+                page_id: pageId,
+                page_token: token
+            });
+            showToast('Page added!');
+        }
+        
+        if (document.getElementById('my_fb_page_name')) document.getElementById('my_fb_page_name').value = '';
+        if (document.getElementById('my_fb_page_id')) document.getElementById('my_fb_page_id').value = '';
+        if (document.getElementById('my_fb_token')) document.getElementById('my_fb_token').value = '';
+        
+        renderMyFbPages();
+        saveMyFbPagesList();
+    }
+    
+    function removeFbPage(index) {
+        if (!confirm("Are you sure you want to remove this page?")) return;
+        myFbPagesList.splice(index, 1);
+        renderMyFbPages();
+        saveMyFbPagesList();
+    }
+    
+    function exportFbPages() {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(myFbPagesList, null, 2));
+        const a = document.createElement('a');
+        a.href = dataStr;
+        a.download = "my_facebook_pages.json";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+    }
+    
+    function importFbPages(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const imported = JSON.parse(e.target.result);
+                if (Array.isArray(imported)) {
+                    myFbPagesList = imported;
+                    renderMyFbPages();
+                    saveMyFbPagesList();
+                    showToast('Pages imported successfully!');
+                } else {
+                    showToast('Invalid format. Expected JSON array.', true);
+                }
+            } catch (err) {
+                showToast('Error reading file.', true);
+            }
+        };
+        reader.readAsText(file);
+        event.target.value = ''; // reset
+    }
+    
+    async function toggleFbAccess(targetId, pageId) {
+        try {
+            const res = await fetch(`/api/fb_access?token=${sessionToken}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ target_id: targetId, page_id: pageId })
+            });
+            if (res.ok) {
+                fetchUsers();
+            } else {
+                alert("Failed to toggle access");
+            }
+        } catch(e) {
+            alert("Error toggling access");
+        }
+    }
+
+    async function toggleUser(targetId) {
+      try {
+        const res = await fetch(`/api/toggle?token=${sessionToken}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ target_id: targetId })
+        });
+        if (res.ok) fetchUsers();
+        else throw new Error("Failed to update status");
+      } catch (err) { showToast("Failed to update status.", true); }
+    }
+    
+    async function promoteUser(targetId, newRole) {
+      try {
+        const res = await fetch(`/api/role?token=${sessionToken}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ target_id: targetId, role: newRole })
+        });
+        if (res.ok) fetchUsers();
+        else throw new Error("Failed to update role");
+      } catch (err) { showToast("Failed to update role.", true); }
+    }
+    
+    async function removeUser(targetId) {
+      if (!confirm("Are you sure you want to completely remove this user? If they interact with the bot again, they will need to be approved again.")) return;
+      try {
+        const res = await fetch(`/api/remove?token=${sessionToken}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ target_id: targetId })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+           fetchUsers();
+           showToast("User successfully removed.");
+        } else {
+           throw new Error(data.error || "Failed to remove user");
+        }
+      } catch (err) { showToast(err.message || "Failed to remove user.", true); }
+    }
+
+    let currentAssignTargetId = null;
+
+    function openAssignServerModal(targetId, currentServer, encodedName) {
+      currentAssignTargetId = targetId;
+      const name = encodedName ? decodeURIComponent(encodedName) : targetId;
+      const targetEl = document.getElementById('assignServerTargetName');
+      if (targetEl) targetEl.textContent = name + ' (' + targetId + ')';
+      
+      const srv = (currentServer || 'main').trim();
+      const customInput = document.getElementById('customServerInput');
+      
+      if (srv === 'main') {
+        document.getElementById('srvOptMain').checked = true;
+        if (customInput) customInput.style.display = 'none';
+      } else if (srv === 'server1') {
+        document.getElementById('srvOptServer1').checked = true;
+        if (customInput) customInput.style.display = 'none';
+      } else if (srv === 'server2') {
+        document.getElementById('srvOptServer2').checked = true;
+        if (customInput) customInput.style.display = 'none';
+      } else if (srv === 'server3') {
+        document.getElementById('srvOptServer3').checked = true;
+        if (customInput) customInput.style.display = 'none';
+      } else if (srv === 'server4') {
+        document.getElementById('srvOptServer4').checked = true;
+        if (customInput) customInput.style.display = 'none';
+      } else if (srv === 'server5') {
+        document.getElementById('srvOptServer5').checked = true;
+        if (customInput) customInput.style.display = 'none';
+      } else {
+        document.getElementById('srvOptCustom').checked = true;
+        if (customInput) {
+          customInput.style.display = 'block';
+          customInput.value = srv;
+        }
+      }
+      
+      const modal = document.getElementById('assignServerModal');
+      if (modal) modal.style.display = 'flex';
+    }
+
+    function closeAssignServerModal() {
+      const modal = document.getElementById('assignServerModal');
+      if (modal) modal.style.display = 'none';
+      currentAssignTargetId = null;
+    }
+
+    function toggleCustomServerInput() {
+      const isCustom = document.getElementById('srvOptCustom').checked;
+      const customInput = document.getElementById('customServerInput');
+      if (customInput) {
+        customInput.style.display = isCustom ? 'block' : 'none';
+        if (isCustom) customInput.focus();
+      }
+    }
+
+    async function saveAssignServer() {
+      if (!currentAssignTargetId) return;
+      let selectedServer = 'main';
+      if (document.getElementById('srvOptServer1').checked) {
+        selectedServer = 'server1';
+      } else if (document.getElementById('srvOptCustom').checked) {
+        selectedServer = document.getElementById('customServerInput').value.trim() || 'main';
+      }
+      
+      try {
+        const res = await fetch(`/api/assign_server?token=${sessionToken}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ target_id: currentAssignTargetId, server_id: selectedServer })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+           closeAssignServerModal();
+           fetchUsers();
+           showToast(`✅ Server assigned successfully to: ${selectedServer}`);
+        } else {
+           throw new Error(data.error || "Failed to assign server");
+        }
+      } catch (err) {
+        showToast(err.message || "Failed to assign server.", true);
+      }
+    }
+
+    function assignServer(targetId, currentServer) {
+      openAssignServerModal(targetId, currentServer, targetId);
+    }
+
+    function setFilter(filter, btn) {
+      currentFilter = filter;
+      currentUsersPage = 1;
+      document.querySelectorAll('.filter-tabs .tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderDashboard();
+    }
+    function filterUsers() { 
+      currentUsersPage = 1;
+      renderDashboard(); 
+    }
+
+    let allSchedules = [];
+    let _schedulePollInterval = null;
+
+    async function fetchSchedules() {
+      try {
+        const res = await fetch(`/api/schedules?token=${sessionToken}`);
+        if (res.ok) {
+          allSchedules = await res.json();
+          renderSchedules();
+          
+          // Poll every 5s if any task is running
+          const hasRunning = allSchedules.some(s => s.status === 'Running');
+          if (hasRunning) {
+              if (!_schedulePollInterval) {
+                  _schedulePollInterval = setInterval(fetchSchedules, 5000);
+              }
+          } else {
+              if (_schedulePollInterval) {
+                  clearInterval(_schedulePollInterval);
+                  _schedulePollInterval = null;
+              }
+          }
+        }
+      } catch (err) { console.error(err); }
+    }
+    
+    function updateScheduleForm() {
+        const type = document.getElementById('scheduleTaskType').value;
+        const container = document.getElementById('dynamicTaskInputs');
+        
+        let html = '';
+        
+        if (type === 'send_message') {
+            html += `
+                <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:1rem;">ℹ️ Sends a custom text message to your Telegram account.</p>
+                <div class="form-group">
+                    <label>Message Content</label>
+                    <input type="text" id="dyn_msg" placeholder="e.g. Hello, this is your scheduled reminder.">
+                </div>
+            `;
+        } else if (type === 'daily_summary') {
+            html += `<p style="color:var(--text-muted); font-size:0.85rem;">ℹ️ Automatically generates and sends a daily summary of bot activity.</p>`;
+        } else if (type === 'download') {
+            html += `
+                <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:1rem;">ℹ️ Automatically downloads media from a given link.</p>
+                <div class="form-group">
+                    <label>Media URL (Hongguo / YouTube / etc.)</label>
+                    <input type="text" id="dyn_url" placeholder="https://...">
+                </div>
+                <div style="margin-top:0.75rem;">
+                    <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer; font-size:0.9rem;">
+                        <input type="checkbox" id="dyn_merge_enable" onchange="document.getElementById('dyn_merge_parts_group').style.display = this.checked ? 'block' : 'none'">
+                        🔗 Merge series videos into N videos (for Hongguo)
+                    </label>
+                    <div id="dyn_merge_parts_group" class="form-group" style="display:none; margin-top:0.5rem;">
+                        <label>How many merged videos? (e.g. 5)</label>
+                        <input type="number" id="dyn_merge_parts" value="5" min="2" max="100">
+                    </div>
+                </div>
+            `;
+        } else if (type === 'clip') {
+             html += `
+                <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:1rem;">ℹ️ Automatically clips a section of a video.</p>
+                <div class="form-group">
+                    <label>Video URL</label>
+                    <input type="text" id="dyn_url" placeholder="https://...">
+                </div>
+                <div class="form-group">
+                    <label>OR Upload Video File</label>
+                    <input type="file" id="dyn_file" accept="video/*,audio/*">
+                </div>
+                <div class="form-group">
+                    <label>Clip Mode</label>
+                    <select id="dyn_clip_mode" onchange="
+                        document.getElementById('mode_parts').style.display = this.value === 'parts' ? 'block' : 'none';
+                        document.getElementById('mode_duration').style.display = this.value === 'duration' ? 'block' : 'none';
+                        document.getElementById('mode_start_end').style.display = this.value === 'start_end' ? 'flex' : 'none';
+                    ">
+                        <option value="start_end">By Start and End Time</option>
+                        <option value="parts">By Number of Parts</option>
+                        <option value="duration">By Duration</option>
+                    </select>
+                </div>
+                <div id="mode_start_end" style="display:flex; gap:1rem;">
+                    <div class="form-group" style="flex:1;">
+                        <label>Start Time</label>
+                        <input type="text" id="dyn_start" placeholder="00:00:00">
+                    </div>
+                    <div class="form-group" style="flex:1;">
+                        <label>End Time</label>
+                        <input type="text" id="dyn_end" placeholder="00:01:00">
+                    </div>
+                </div>
+                <div id="mode_parts" class="form-group" style="display:none;">
+                    <label>Number of Parts</label>
+                    <input type="number" id="dyn_parts" placeholder="e.g. 5" min="1">
+                </div>
+                <div id="mode_duration" class="form-group" style="display:none;">
+                    <label>Duration per Clip (minutes)</label>
+                    <input type="number" id="dyn_duration" placeholder="e.g. 5" min="1">
+                </div>
+            `;
+        } else if (type === 'dubb') {
+            html += `
+                <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:1rem;">ℹ️ Automatically AI Dubs a video into another language.</p>
+                <div class="form-group">
+                    <label>Video URL</label>
+                    <input type="text" id="dyn_url" placeholder="https://...">
+                </div>
+                <div class="form-group">
+                    <label>OR Upload Video File</label>
+                    <input type="file" id="dyn_file" accept="video/*,audio/*">
+                </div>
+                <div style="display:flex; gap:1rem;">
+                    <div class="form-group" style="flex:1;">
+                        <label>Source Language</label>
+                        <select id="dyn_source_lang">
+                            <option value="auto">Auto Detect</option>
+                            <option value="en">English</option>
+                            <option value="km">Khmer</option>
+                            <option value="zh">Chinese</option>
+                            <option value="vi">Vietnamese</option>
+                            <option value="th">Thai</option>
+                            <option value="ko">Korean</option>
+                            <option value="ja">Japanese</option>
+                            <option value="fr">French</option>
+                            <option value="es">Spanish</option>
+                            <option value="de">German</option>
+                            <option value="ru">Russian</option>
+                            <option value="ar">Arabic</option>
+                            <option value="hi">Hindi</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="flex:1;">
+                        <label>Target Language</label>
+                        <select id="dyn_lang">
+                            <option value="km" selected>Khmer (ភាសាខ្មែរ)</option>
+                            <option value="en">English</option>
+                            <option value="zh">Chinese</option>
+                            <option value="vi">Vietnamese</option>
+                            <option value="th">Thai</option>
+                            <option value="ko">Korean</option>
+                            <option value="ja">Japanese</option>
+                            <option value="fr">French</option>
+                            <option value="es">Spanish</option>
+                            <option value="de">German</option>
+                            <option value="ru">Russian</option>
+                            <option value="ar">Arabic</option>
+                            <option value="hi">Hindi</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="display:flex; gap:1rem; margin-top:0.5rem; flex-wrap:wrap;">
+                    <div class="form-group" style="flex:1; min-width:200px;">
+                        <label>Transcribe Engine</label>
+                        <select id="dyn_transcribe_engine">
+                            <option value="gemini" selected>Gemini AI API (Fast Cloud & Timestamped)</option>
+                            <option value="medium">Whisper: Medium (Recommended)</option>
+                            <option value="small">Whisper: Small (Faster)</option>
+                            <option value="base">Whisper: Base</option>
+                            <option value="tiny">Whisper: Tiny (Fastest)</option>
+                            <option value="large-v3">Whisper: Large-v3 (Best Quality)</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="flex:1; min-width:200px;">
+                        <label>Translate Engine</label>
+                        <select id="dyn_translate_engine">
+                            <option value="gemini" selected>Gemini API (Cinematic Human Dubbing)</option>
+                            <option value="local">Local AI / Free Endpoints</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="flex:1; min-width:200px;">
+                        <label>Voice Engine (TTS)</label>
+                        <select id="dyn_voice_engine" onchange="toggleVoxCpmModelVisibility()">
+                            <option value="edge-tts" selected>edge-tts (Neural AI Voice)</option>
+                            <option value="voxcpm2">VoxCPM (OpenBMB Hugging Face)</option>
+                            <option value="gtts">gTTS (Google TTS)</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="dyn_voxcpm_model_group" style="flex:1; min-width:200px; display:none;">
+                        <label>VoxCPM Model (Hugging Face)</label>
+                        <select id="dyn_voxcpm_model">
+                            <option value="openbmb/VoxCPM2" selected>VoxCPM2 (Flagship 2B Multilingual)</option>
+                            <option value="openbmb/VoxCPM1.5">VoxCPM1.5 (0.6B Fast & Expressive)</option>
+                            <option value="openbmb/VoxCPM-0.5B">VoxCPM0.5 (0.5B Lightweight)</option>
+                        </select>
+                    </div>
+                </div>
+            `;
+        } else if (type === 'translate') {
+            html += `
+                <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:1rem;">ℹ️ Automatically translates text.</p>
+                <div class="form-group">
+                    <label>Input Text</label>
+                    <input type="text" id="dyn_text" placeholder="Enter text here...">
+                </div>
+                <div class="form-group">
+                    <label>OR Upload Text File (.txt)</label>
+                    <input type="file" id="dyn_file" accept=".txt">
+                </div>
+                <div style="display:flex; gap:1rem;">
+                    <div class="form-group" style="flex:1;">
+                        <label>Source Language</label>
+                        <select id="dyn_source_lang">
+                            <option value="auto">Auto Detect</option>
+                            <option value="en">English</option>
+                            <option value="km">Khmer</option>
+                            <option value="zh">Chinese</option>
+                            <option value="vi">Vietnamese</option>
+                            <option value="th">Thai</option>
+                            <option value="ko">Korean</option>
+                            <option value="ja">Japanese</option>
+                            <option value="fr">French</option>
+                            <option value="es">Spanish</option>
+                            <option value="de">German</option>
+                            <option value="ru">Russian</option>
+                            <option value="ar">Arabic</option>
+                            <option value="hi">Hindi</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="flex:1;">
+                        <label>Target Language</label>
+                        <select id="dyn_lang">
+                            <option value="km" selected>Khmer (ភាសាខ្មែរ)</option>
+                            <option value="en">English</option>
+                            <option value="zh">Chinese</option>
+                            <option value="vi">Vietnamese</option>
+                            <option value="th">Thai</option>
+                            <option value="ko">Korean</option>
+                            <option value="ja">Japanese</option>
+                            <option value="fr">French</option>
+                            <option value="es">Spanish</option>
+                            <option value="de">German</option>
+                            <option value="ru">Russian</option>
+                            <option value="ar">Arabic</option>
+                            <option value="hi">Hindi</option>
+                        </select>
+                    </div>
+                </div>
+            `;
+        } else if (type === 'facebook_post') {
+            html += `
+                <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:1rem;">ℹ️ Automatically post to your configured Facebook Page.</p>
+                <div class="form-group">
+                    <label>Target Page</label>
+                    <select id="dyn_fb_target">
+            `;
+            if (myFbPagesList && myFbPagesList.length > 0) {
+                html += `<option value="all_saved">Post to All Saved Pages</option>`;
+                myFbPagesList.forEach((p, index) => {
+                    html += `<option value="saved_${index}">Saved: ${p.page_name || p.page_id}</option>`;
+                });
+            }
+            if (currentUser) {
+                if (currentUser.role === 'SUPER_ADMIN') {
+                    html += `
+                            <option value="all_system">All System Pages (Post to Both)</option>
+                            <option value="aimovie">AI Movie Khmer (System Page)</option>
+                            <option value="livealone">LiveAlone (System Page)</option>
+                    `;
+                } else {
+                    const accessList = Array.isArray(currentUser.fb_pages_access) ? currentUser.fb_pages_access : (currentUser.fb_pages_access === true ? ['aimovie', 'livealone'] : []);
+                    if (accessList.includes('aimovie') && accessList.includes('livealone')) {
+                        html += `<option value="all_system">All System Pages (Post to Both)</option>`;
+                    }
+                    if (accessList.includes('aimovie')) {
+                        html += `<option value="aimovie">AI Movie Khmer (System Page)</option>`;
+                    }
+                    if (accessList.includes('livealone')) {
+                        html += `<option value="livealone">LiveAlone (System Page)</option>`;
+                    }
+                }
+            }
+            html += `
+                    </select>
+                </div>
+            `;
+            html += `
+                <div class="form-group">
+                    <label>Post Text</label>
+                    <input type="text" id="dyn_msg" placeholder="What's on your mind?">
+                </div>
+                <div class="form-group">
+                    <label>Video Title (Optional)</label>
+                    <input type="text" id="dyn_title" placeholder="Title for the video...">
+                </div>
+                <div class="form-group">
+                    <label>Media URL (Optional Image/Video)</label>
+                    <input type="text" id="dyn_url" placeholder="https://...">
+                </div>
+                <div class="form-group">
+                    <label>OR Upload Media File</label>
+                    <input type="file" id="dyn_file" accept="image/*,video/*">
+                </div>
+                <div class="form-group">
+                    <label>Tags (Comma-separated Page/User IDs)</label>
+                    <input type="text" id="dyn_tags" placeholder="e.g. 1234, 5678">
+                </div>
+                <div class="form-group">
+                    <label>Collaborators (Comma-separated IDs)</label>
+                    <input type="text" id="dyn_collaborators" placeholder="e.g. 1234, 5678">
+                </div>
+            `;
+        }
+        
+        // Add checkboxes for clip, dubb, translate, facebook_post
+        if (['clip', 'dubb', 'translate', 'facebook_post'].includes(type)) {
+            html += `
+                <div style="margin-top: 1rem; border-top: 1px solid var(--card-border); padding-top: 1rem;">
+            `;
+            if (type === 'dubb') {
+                html += `
+                    <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer; margin-bottom:0.75rem; font-size:0.9rem;">
+                        <input type="checkbox" id="dyn_bg_sound">
+                        Need background sound and sound effect (final result 0% vocal original voice)
+                    </label>
+                    <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer; margin-bottom:0.75rem; font-size:0.9rem;">
+                        <input type="checkbox" id="dyn_merge_enable" onchange="document.getElementById('dyn_merge_parts_group').style.display = this.checked ? 'block' : 'none'">
+                        🔗 Merge series episodes into N videos (for Hongguo)
+                    </label>
+                    <div id="dyn_merge_parts_group" class="form-group" style="display:none; margin-bottom:0.75rem;">
+                        <label>How many merged videos? (e.g. 5)</label>
+                        <input type="number" id="dyn_merge_parts" value="5" min="2" max="100">
+                    </div>
+                    <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer; margin-bottom:0.75rem; font-size:0.9rem;" onchange="document.getElementById('fb_post_area').style.display = this.querySelector('input').checked ? 'block' : 'none'">
+                        <input type="checkbox" id="dyn_bot_post_fb">
+                        Bot post to Facebook
+                    </label>
+                    <div id="fb_post_area" style="display:none; margin-bottom:0.75rem; padding: 0.75rem; border: 1px dashed var(--card-border); border-radius: 4px;">
+                `;
+                let savedOptionsHtml = '';
+                if (myFbPagesList && myFbPagesList.length > 0) {
+                    savedOptionsHtml += `<option value="all_saved">Post to All Saved Pages</option>`;
+                    myFbPagesList.forEach((p, index) => {
+                        savedOptionsHtml += `<option value="saved_${index}">Saved: ${p.page_name || p.page_id}</option>`;
+                    });
+                }
+                
+                let targetOptions = savedOptionsHtml;
+
+                if (currentUser) {
+                    if (currentUser.role === 'SUPER_ADMIN') {
+                        targetOptions += `
+                            <option value="all_system">All System Pages (Post to Both)</option>
+                            <option value="aimovie">AI Movie Khmer (System Page)</option>
+                            <option value="livealone">LiveAlone (System Page)</option>
+                        `;
+                        html += `
+                            <div class="form-group">
+                                <label>Target Page</label>
+                                <select id="dyn_fb_target">${targetOptions}</select>
+                            </div>
+                        `;
+                    } else {
+                        const accessList = Array.isArray(currentUser.fb_pages_access) ? currentUser.fb_pages_access : (currentUser.fb_pages_access === true ? ['aimovie', 'livealone'] : []);
+                        if (accessList.includes('aimovie') && accessList.includes('livealone')) {
+                            targetOptions += `<option value="all_system">All System Pages (Post to Both)</option>`;
+                        }
+                        if (accessList.includes('aimovie')) {
+                            targetOptions += `<option value="aimovie">AI Movie Khmer (System Page)</option>`;
+                        }
+                        if (accessList.includes('livealone')) {
+                            targetOptions += `<option value="livealone">LiveAlone (System Page)</option>`;
+                        }
+                        html += `
+                            <div class="form-group">
+                                <label>Target Page</label>
+                                <select id="dyn_fb_target">${targetOptions}</select>
+                            </div>
+                        `;
+                    }
+                } else {
+                    html += `
+                        <div class="form-group">
+                            <label>Target Page</label>
+                            <select id="dyn_fb_target">${targetOptions}</select>
+                        </div>
+                    `;
+                }
+                html += `
+                        <div class="form-group" style="margin-top: 0.5rem; margin-bottom: 0.5rem;">
+                            <label>Post Text</label>
+                            <input type="text" id="dyn_fb_text" placeholder="e.g. សូមជូនរឿង {\${title}} ភាគ {ep}">
+                            <p style="font-size:0.75rem; color:var(--text-muted); margin-top:0.25rem;">
+                                💡 Variables: <code>{\${title}}</code> or <code>\${title}</code> (auto-translates original title to Target Language, e.g. {រាត្រីរន្ធត់}), <code>\${ep}</code> (episode #), <code>\${total}</code> (total episodes).
+                            </p>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0.5rem;">
+                            <label>Tags (Comma-separated IDs)</label>
+                            <input type="text" id="dyn_tags" placeholder="e.g. 1234, 5678">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label>Collaborators (Comma-separated IDs)</label>
+                            <input type="text" id="dyn_collaborators" placeholder="e.g. 1234, 5678">
+                        </div>
+                    </div>
+                `;
+            }
+            html += `
+                    <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer; font-size:0.9rem;" onchange="document.getElementById('thumb_upload_area').style.display = this.querySelector('input').checked ? 'block' : 'none'">
+                        <input type="checkbox" id="dyn_has_thumb">
+                        Upload custom thumbnail
+                    </label>
+                    <div id="thumb_upload_area" class="form-group" style="display:none; margin-top:0.75rem;">
+                        <label>Thumbnail Image</label>
+                        <input type="file" id="dyn_thumb_file" accept="image/*">
+                    </div>
+                </div>
+            `;
+        }
+        
+        container.innerHTML = html;
+        toggleVoxCpmModelVisibility();
+    }
+
+    function toggleVoxCpmModelVisibility() {
+        const vEng = document.getElementById('dyn_voice_engine')?.value;
+        const grp = document.getElementById('dyn_voxcpm_model_group');
+        if (grp) {
+            grp.style.display = (vEng === 'voxcpm2' || vEng === 'voxcpm') ? 'block' : 'none';
+        }
+    }
+
+    async function uploadFile(fileInput) {
+        if (!fileInput || !fileInput.files || fileInput.files.length === 0) return null;
+        
+        const file = fileInput.files[0];
+        const fileName = file.name || "upload.bin";
+        let ext = fileName.split('.').pop();
+        if (!ext || ext === fileName) ext = "bin";
+        const safeName = "upload_" + Date.now() + "." + ext;
+        
+        const res = await fetch(`/api/upload?token=${sessionToken}&filename=${encodeURIComponent(safeName)}`, {
+            method: 'POST',
+            body: file,
+            headers: {
+                'Content-Type': 'application/octet-stream'
+            }
+        });
+        
+        if (res.ok) {
+            const data = await res.json();
+            return data.file_path; // server returns the local saved path
+        }
+        throw new Error("Upload failed");
+    }
+
+    let editScheduleIndex = -1;
+
+    async function saveSchedule() {
+      const type = document.getElementById('scheduleTaskType').value;
+      const localTimeStr = document.getElementById('scheduleTime').value;
+      if (!localTimeStr) { showToast("Please set a time.", true); return; }
+      
+      // Convert to UTC ISO String
+      const time = new Date(localTimeStr).toISOString();
+      
+      const saveBtn = document.getElementById('btnSaveSchedule');
+      const originalText = saveBtn.innerText;
+      saveBtn.innerText = "Saving/Uploading...";
+      saveBtn.disabled = true;
+      
+      try {
+          let data = {};
+          let filePath = null;
+          let thumbPath = null;
+          
+          // Handle uploads if they exist
+          if (['clip', 'dubb', 'translate', 'facebook_post'].includes(type)) {
+              filePath = await uploadFile(document.getElementById('dyn_file'));
+              if (document.getElementById('dyn_has_thumb')?.checked) {
+                  thumbPath = await uploadFile(document.getElementById('dyn_thumb_file'));
+              }
+          }
+          
+          if (type === 'send_message') {
+              data = { 
+                  message: document.getElementById('dyn_msg')?.value || '',
+                  bot_token: document.getElementById('scheduleBotToken')?.value
+              };
+          } else if (type === 'download') {
+              const mergeEnabled = document.getElementById('dyn_merge_enable')?.checked || false;
+              const mergeParts = mergeEnabled ? (parseInt(document.getElementById('dyn_merge_parts')?.value) || 1) : 1;
+              data = { 
+                  url: document.getElementById('dyn_url')?.value || '',
+                  merge_parts: mergeParts,
+                  bot_token: document.getElementById('scheduleBotToken')?.value
+              };
+          } else if (type === 'clip') {
+              const clipMode = document.getElementById('dyn_clip_mode')?.value || 'start_end';
+              data = { 
+                  url: filePath || document.getElementById('dyn_url')?.value || '',
+                  clip_mode: clipMode,
+                  thumbnail: thumbPath,
+                  bot_token: document.getElementById('scheduleBotToken')?.value
+              };
+              if (clipMode === 'start_end') {
+                  data.start = document.getElementById('dyn_start')?.value || '';
+                  data.end = document.getElementById('dyn_end')?.value || '';
+              } else if (clipMode === 'parts') {
+                  data.parts = document.getElementById('dyn_parts')?.value || '';
+              } else if (clipMode === 'duration') {
+                  data.duration = document.getElementById('dyn_duration')?.value || '';
+              }
+          } else if (type === 'dubb') {
+              const dynTranscribe = document.getElementById('dyn_transcribe_engine')?.value || 'gemini';
+              const mergeEnabled = document.getElementById('dyn_merge_enable')?.checked || false;
+              const mergeParts = mergeEnabled ? (parseInt(document.getElementById('dyn_merge_parts')?.value) || 1) : 1;
+              data = { 
+                  url: filePath || document.getElementById('dyn_url')?.value || '',
+                  merge_parts: mergeParts,
+                  source_lang: document.getElementById('dyn_source_lang')?.value || 'Auto Detect',
+                  lang: document.getElementById('dyn_lang')?.value || 'km',
+                  whisper_model: dynTranscribe === 'gemini' ? 'gemini' : dynTranscribe,
+                  transcribe_engine: dynTranscribe,
+                  translate_engine: document.getElementById('dyn_translate_engine')?.value || 'gemini',
+                  voice_engine: document.getElementById('dyn_voice_engine')?.value || 'edge-tts',
+                  tts_backend: document.getElementById('dyn_voice_engine')?.value || 'edge-tts',
+                  voxcpm_model: document.getElementById('dyn_voxcpm_model')?.value || 'openbmb/VoxCPM2',
+                  need_bg_sound: document.getElementById('dyn_bg_sound')?.checked || false,
+                  thumbnail: thumbPath,
+                  post_to_fb: document.getElementById('dyn_bot_post_fb')?.checked || false,
+                  fb_target: document.getElementById('dyn_fb_target')?.value || 'custom',
+                  fb_text: document.getElementById('dyn_fb_text')?.value || '',
+                  tags: document.getElementById('dyn_tags')?.value || '',
+                  collaborators: document.getElementById('dyn_collaborators')?.value || '',
+                  bot_token: document.getElementById('scheduleBotToken')?.value
+              };
+          } else if (type === 'translate') {
+              data = { 
+                  text: document.getElementById('dyn_msg')?.value || '',
+                  file_url: filePath,
+                  source_lang: document.getElementById('dyn_source_lang')?.value || 'Auto Detect',
+                  lang: document.getElementById('dyn_lang')?.value || '',
+                  need_bg_sound: document.getElementById('dyn_bg_sound')?.checked || false,
+                  thumbnail: thumbPath,
+                  bot_token: document.getElementById('scheduleBotToken')?.value
+              };
+          } else if (type === 'facebook_post') {
+              data = {
+                  text: document.getElementById('dyn_msg')?.value || '',
+                  file_url: filePath,
+                  title: document.getElementById('dyn_title')?.value || '',
+                  page_id: document.getElementById('dyn_page_id')?.value || '',
+                  page_token: document.getElementById('dyn_page_token')?.value || '',
+                  thumbnail: thumbPath,
+                  tags: document.getElementById('dyn_tags')?.value || '',
+                  collaborators: document.getElementById('dyn_collaborators')?.value || '',
+                  bot_token: document.getElementById('scheduleBotToken')?.value
+              };
+          }
+          
+
+          const payload = { task_type: type, run_time: time, data: JSON.stringify(data) };
+          if (editScheduleIndex !== -1) {
+              payload.idx = editScheduleIndex;
+          }
+
+          const res = await fetch(`/api/schedules?token=${sessionToken}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          
+          if (res.ok) {
+            fetchSchedules();
+            showToast(editScheduleIndex !== -1 ? "Schedule updated!" : "Schedule saved!");
+            updateScheduleForm(); // Reset dynamic fields but keep the Date/Time
+            editScheduleIndex = -1;
+            saveBtn.innerText = "Save Schedule";
+          } else {
+             showToast("Failed to save schedule.", true);
+          }
+      } catch (err) { 
+          showToast("Error: " + err.message, true); 
+      } finally {
+          saveBtn.innerText = editScheduleIndex !== -1 ? "Update Schedule" : originalText;
+          saveBtn.disabled = false;
+      }
+    }
+    
+    async function deleteSchedule(idx) {
+        try {
+            await fetch(`/api/schedules?token=${sessionToken}&idx=${idx}`, { method: 'DELETE' });
+            fetchSchedules();
+        } catch(e) {}
+    }
+
+    async function stopSchedule(taskId) {
+        showToast("⏹ Stopping scheduled task...", false);
+        try {
+            const res = await fetch(`/api/schedules/stop?token=${sessionToken}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ task_id: taskId })
+            });
+            const data = await res.json();
+            if (data.success) {
+                showToast(data.message || "Stop signal sent.");
+            } else {
+                showToast(data.error || data.message || "Failed to stop task.", true);
+            }
+            fetchSchedules();
+        } catch(e) {
+            showToast("Network error stopping task.", true);
+        }
+    }
+
+    function editSchedule(idx) {
+        const s = allSchedules[idx];
+        if (!s) return;
+        
+        editScheduleIndex = idx;
+        
+        // Restore bot_token if available
+        if (s.bot_token) {
+            const select = document.getElementById('scheduleBotToken');
+            if (select) {
+                // Check if option exists, otherwise wait
+                let exists = false;
+                for (let i=0; i<select.options.length; i++) {
+                    if (select.options[i].value === s.bot_token) exists = true;
+                }
+                if (exists) select.value = s.bot_token;
+                else setTimeout(() => select.value = s.bot_token, 500);
+            }
+        } else {
+            const select = document.getElementById('scheduleBotToken');
+            if (select) select.value = 'main_bot';
+        }
+        
+        document.getElementById('scheduleTaskType').value = s.task_type;
+        updateScheduleForm();
+        
+        // Ensure thumbnail UI is ready
+        try {
+            const data = JSON.parse(s.data);
+            if (['clip', 'dubb', 'translate', 'facebook_post'].includes(s.task_type)) {
+                if (data.thumbnail) {
+                    document.getElementById('dyn_has_thumb').checked = true;
+                    document.getElementById('thumb_upload_area').style.display = 'block';
+                }
+            }
+        } catch (e) {}
+        
+        let dateObj = new Date(s.run_time);
+        if (!isNaN(dateObj)) {
+            const tzOffset = dateObj.getTimezoneOffset() * 60000;
+            const localISOTime = (new Date(dateObj - tzOffset)).toISOString().slice(0, 16);
+            document.getElementById('scheduleTime').value = localISOTime;
+        }
+
+        try {
+            const data = JSON.parse(s.data);
+            if (s.task_type === 'send_message') {
+                document.getElementById('dyn_msg').value = data.message || '';
+            } else if (s.task_type === 'download') {
+                document.getElementById('dyn_url').value = data.url || '';
+                if (data.merge_parts && data.merge_parts > 1) {
+                    const chk = document.getElementById('dyn_merge_enable');
+                    if (chk) { chk.checked = true; document.getElementById('dyn_merge_parts_group').style.display = 'block'; }
+                    const inp = document.getElementById('dyn_merge_parts');
+                    if (inp) inp.value = data.merge_parts;
+                }
+            } else if (s.task_type === 'clip') {
+                document.getElementById('dyn_url').value = data.url || '';
+                if (data.clip_mode) document.getElementById('dyn_clip_mode').value = data.clip_mode;
+                updateClipMode();
+                if (data.start) document.getElementById('dyn_start').value = data.start;
+                if (data.end) document.getElementById('dyn_end').value = data.end;
+                if (data.parts) document.getElementById('dyn_parts').value = data.parts;
+                if (data.duration) document.getElementById('dyn_duration').value = data.duration;
+            } else if (s.task_type === 'dubb' || s.task_type === 'translate') {
+                if (s.task_type === 'translate') document.getElementById('dyn_text').value = data.text || '';
+                else document.getElementById('dyn_url').value = data.url || '';
+                
+                document.getElementById('dyn_source_lang').value = data.source_lang || 'Auto Detect';
+                document.getElementById('dyn_lang').value = data.lang || '';
+                document.getElementById('dyn_bg_sound').checked = !!data.need_bg_sound;
+                if (document.getElementById('dyn_transcribe_engine') && (data.transcribe_engine || data.whisper_model)) {
+                    document.getElementById('dyn_transcribe_engine').value = data.transcribe_engine || data.whisper_model;
+                }
+                if (document.getElementById('dyn_translate_engine') && data.translate_engine) {
+                    document.getElementById('dyn_translate_engine').value = data.translate_engine;
+                }
+                if (document.getElementById('dyn_voice_engine') && (data.voice_engine || data.tts_backend)) {
+                    document.getElementById('dyn_voice_engine').value = data.voice_engine || data.tts_backend;
+                    toggleVoxCpmModelVisibility();
+                }
+                if (document.getElementById('dyn_voxcpm_model') && data.voxcpm_model) {
+                    document.getElementById('dyn_voxcpm_model').value = data.voxcpm_model;
+                    toggleVoxCpmModelVisibility();
+                }
+                if (data.merge_parts && data.merge_parts > 1) {
+                    const chk = document.getElementById('dyn_merge_enable');
+                    if (chk) { chk.checked = true; document.getElementById('dyn_merge_parts_group').style.display = 'block'; }
+                    const inp = document.getElementById('dyn_merge_parts');
+                    if (inp) inp.value = data.merge_parts;
+                }
+            } else if (s.task_type === 'facebook_post') {
+                document.getElementById('dyn_msg').value = data.text || '';
+                document.getElementById('dyn_title').value = data.title || '';
+                document.getElementById('dyn_url').value = data.url || '';
+                if (document.getElementById('dyn_fb_target')) {
+                    document.getElementById('dyn_fb_target').value = data.fb_target || '';
+                    document.getElementById('dyn_fb_target').dispatchEvent(new Event('change'));
+                }
+            }
+        } catch (e) {}
+
+        const saveBtn = document.getElementById('btnSaveSchedule');
+        saveBtn.innerText = "Update Schedule";
+        
+        window.scrollTo({ top: document.querySelector('.settings-card').offsetTop, behavior: 'smooth' });
+    }
+
+    function renderSchedules() {
+      const tbody = document.getElementById('scheduleTableBody');
+      if (allSchedules.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="empty-state">No scheduled tasks.</td></tr>`;
+        document.getElementById('schedulePagination').innerHTML = '';
+        return;
+      }
+      
+      const totalPages = Math.ceil(allSchedules.length / itemsPerPage) || 1;
+      if (currentSchedulesPage > totalPages) currentSchedulesPage = totalPages;
+      if (currentSchedulesPage < 1) currentSchedulesPage = 1;
+
+      const paginated = allSchedules.slice((currentSchedulesPage - 1) * itemsPerPage, currentSchedulesPage * itemsPerPage);
+
+      tbody.innerHTML = paginated.map((s, idx) => {
+        const actualIdx = (currentSchedulesPage - 1) * itemsPerPage + idx;
+        let details = s.data;
+        try {
+            const parsed = JSON.parse(s.data);
+            details = Object.entries(parsed).map(([k,v]) => `<strong>${k}</strong>: ${v}`).join('<br>');
+        } catch(e) {}
+        
+        let displayTime = s.run_time;
+        if (displayTime.includes('T')) {
+            const dt = new Date(displayTime);
+            if (!isNaN(dt)) {
+                displayTime = dt.toLocaleString([], {
+                    year: 'numeric', month: 'short', day: 'numeric',
+                    hour: '2-digit', minute: '2-digit'
+                });
+            }
+        }
+        
+        let statusBadge = '<span class="badge" style="background:#374151; color:#fff;">Pending</span>';
+        if (s.status === 'Running') {
+            statusBadge = '<span class="badge" style="background:var(--warning); color:#fff;">Running</span>';
+        } else if (s.status === 'Sent to user') {
+            statusBadge = '<span class="badge" style="background:var(--success); color:#fff;">Sent to user</span>';
+        } else if (s.status && s.status.startsWith('Failed')) {
+            statusBadge = `<span class="badge" style="background:var(--danger); color:#fff;" title="${s.status}">Failed</span>`;
+        } else if (s.status) {
+            statusBadge = `<span class="badge" style="background:#374151; color:#fff;">${s.status}</span>`;
+        }
+        
+        let actionButtons = `
+             <div style="display: flex; gap: 0.5rem; flex-wrap: nowrap;">
+                 <button class="btn btn-promote" style="white-space: nowrap;" onclick="editSchedule(${actualIdx})">Edit</button>
+                 <button class="btn btn-block" style="white-space: nowrap;" onclick="deleteSchedule(${actualIdx})">Delete</button>
+             </div>
+        `;
+        const statusStr = String(s.status || '').toLowerCase();
+        const isRunning = statusStr.includes('run') || statusStr.includes('progress');
+        if (isRunning) {
+            actionButtons = `
+             <div style="display: flex; gap: 0.5rem; flex-wrap: nowrap;">
+                 <button class="btn btn-block" style="white-space: nowrap; background: var(--danger); animation: pulseStop 1.5s infinite;" onclick="stopSchedule('${s.id}')">⏹ Stop</button>
+             </div>
+            `;
+        }
+
+        return `
+        <tr>
+          <td><strong style="text-transform: capitalize;">${s.task_type.replace('_', ' ')}</strong></td>
+          <td>${displayTime}</td>
+          <td>${statusBadge}</td>
+          <td style="font-size:0.85rem; color:var(--text-muted);">${details || '-'}</td>
+           <td>${actionButtons}</td>
+        </tr>
+      `}).join('');
+      
+      document.getElementById('schedulePagination').innerHTML = `
+        <button ${currentSchedulesPage <= 1 ? 'disabled' : ''} onclick="currentSchedulesPage--; renderSchedules()">Previous</button>
+        <span class="pagination-info">Page ${currentSchedulesPage} of ${totalPages}</span>
+        <button ${currentSchedulesPage >= totalPages ? 'disabled' : ''} onclick="currentSchedulesPage++; renderSchedules()">Next</button>
+      `;
+    }
+
+    // Init
+    checkAuth();
+    updateScheduleForm();
+    
+    function toggleProfileDropdown(e) {
+        e.stopPropagation();
+        const dd = document.getElementById('profileDropdown');
+        if (dd) {
+            dd.style.display = dd.style.display === 'none' || !dd.style.display ? 'block' : 'none';
+        }
+    }
+    
+    function signOut(e) {
+        e.stopPropagation();
+        localStorage.removeItem('dash_session_token');
+        sessionToken = null;
+        currentUser = null;
+        window.location.href = window.location.pathname;
+    }
+
+    // Close dropdown if clicked outside
+    document.addEventListener('click', function(e) {
+        const dd = document.getElementById('profileDropdown');
+        if (dd && dd.style.display === 'block') {
+            dd.style.display = 'none';
+        }
+    });
+    
+    // Set default datetime to now
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    document.getElementById('scheduleTime').min = now.toISOString().slice(0, 16);
+    document.getElementById('scheduleTime').value = now.toISOString().slice(0, 16);
+    
+    // Auto refresh users if admin
+    setInterval(() => {
+        if (currentUser && (currentUser.role === 'SUPER_ADMIN' || currentUser.role === 'ADMIN')) {
+            fetchUsers();
+        }
+    }, 30000);
+    
+    // Auto refresh schedules to see live status updates
+    setInterval(() => {
+        if (currentUser) {
+            fetchSchedules();
+        }
+    }, 5000);
+
+    function fetchLogs() {
+        if (!currentUser || currentUser.role !== 'SUPER_ADMIN') return;
+        fetch(`/api/logs?token=${sessionToken}`)
+            .then(res => res.text())
+            .then(logs => {
+                const container = document.getElementById('logContainer');
+                if (container) {
+                    container.innerText = logs || 'No logs available.';
+                    container.scrollTop = container.scrollHeight;
+                }
+            })
+            .catch(err => console.error(err));
+    }
+
+    let telegramBotsList = [];
+    
+    async function fetchTelegramBots() {
+        try {
+            const url = currentUser.role === 'SUPER_ADMIN' ? `/api/telegram_bots?all=true&token=${sessionToken}` : `/api/telegram_bots?token=${sessionToken}`;
+            const res = await fetch(url);
+            if (res.ok) {
+                const data = await res.json();
+                telegramBotsList = data.bots || [];
+                window.defaultScheduleBotToken = data.default_bot_token || 'main_bot';
+                
+        // Populate Schedule Bot Select (ONLY user's bots)
+        const scheduleBotSelect = document.getElementById('scheduleBotToken');
+        if (scheduleBotSelect) {
+            let optionsHtml = '';
+            if (currentUser.role === 'SUPER_ADMIN') {
+                optionsHtml = '<option value="main_bot">Main Bot (System Default)</option>';
+            }
+            telegramBotsList.forEach(b => {
+                // If it's Super Admin viewing 'all', filter to only show their own bots in the Schedule dropdown
+                if (!b.owner_id || String(b.owner_id) === String(currentUser.user_id)) {
+                    if (b.status === 'APPROVED') {
+                        optionsHtml += `<option value="${b.bot_token}">${b.bot_name || b.bot_token.substring(0,10)+'...'}</option>`;
+                    }
+                }
+            });
+            const oldVal = scheduleBotSelect.value;
+            scheduleBotSelect.innerHTML = optionsHtml;
+            // Select default if not manually changed, or keep old val
+            if (!oldVal || oldVal === 'main_bot') {
+                scheduleBotSelect.value = window.defaultScheduleBotToken;
+            } else {
+                scheduleBotSelect.value = oldVal;
+            }
+        }
+
+        const otpBotSelect = document.getElementById('otpBotToken');
+        if (otpBotSelect && otpBotSelect.tagName === 'SELECT') {
+            let optionsHtmlOtp = '<option value="main_bot">Main Bot (Default)</option>';
+            telegramBotsList.forEach(b => {
+                if (b.status === 'APPROVED') {
+                    optionsHtmlOtp += `<option value="${b.bot_token}">${b.bot_name || b.bot_token.substring(0,10)+'...'}</option>`;
+                }
+            });
+            otpBotSelect.innerHTML = optionsHtmlOtp;
+            const pendingVal = otpBotSelect.dataset.serverValue;
+            if (pendingVal) {
+                otpBotSelect.value = pendingVal;
+            } else if (!otpBotSelect.value) {
+                otpBotSelect.value = 'main_bot';
+            }
+        }
+
+        renderTelegramBots();
+            }
+        } catch (err) { console.error(err); }
+    }
+
+    function renderTelegramBots() {
+        const tbody = document.getElementById('tgBotsTableBody');
+        if (!tbody) return;
+        
+        if (telegramBotsList.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" class="empty-state">No bots added yet.</td></tr>`;
+            return;
+        }
+        
+        tbody.innerHTML = telegramBotsList.map((b, index) => {
+            const isSuperAdmin = currentUser.role === 'SUPER_ADMIN';
+            let statusBadge = '';
+            if (b.status === 'APPROVED') statusBadge = '<span class="badge badge-approved">✅ Approved</span>';
+            else if (b.status === 'REJECTED') statusBadge = '<span class="badge badge-blocked">❌ Rejected</span>';
+            else statusBadge = '<span class="badge badge-role">⏳ Pending</span>';
+            
+            let ownerInfo = '';
+            if (isSuperAdmin && b.owner_name) {
+                ownerInfo = `<br><small style="color:var(--primary); font-weight: 600;">Owner: ${b.owner_name} (@${b.owner_username || ''})</small>`;
+            }
+            
+            let isDefault = window.defaultScheduleBotToken === b.bot_token;
+            let defaultBadge = isDefault ? '<span class="badge" style="background: rgba(245, 158, 11, 0.2); color: #f59e0b; border: 1px solid rgba(245,158,11,0.4);">⭐ Default</span>' : '';
+            
+            let actionBtns = '';
+            if (isSuperAdmin) {
+                const toggleStatus = b.status === 'APPROVED' ? 'REJECTED' : 'APPROVED';
+                actionBtns += `<button class="btn btn-promote" style="margin-right:0.5rem;" onclick="adminUpdateBotStatus('${b.owner_id}', '${b.bot_token}', '${toggleStatus}')">${b.status === 'APPROVED' ? 'Reject' : 'Approve'}</button>`;
+                actionBtns += `<button class="btn btn-block" onclick="deleteTelegramBot('${b.bot_token}', '${b.owner_id}')">🗑 Delete</button>`;
+            } else {
+                if (!isDefault) {
+                    actionBtns += `<button class="btn btn-approve" style="margin-right:0.5rem;" onclick="setScheduleDefaultBot('${b.bot_token}')">⭐ Set Default</button>`;
+                }
+                actionBtns += `<button class="btn btn-promote" style="margin-right:0.5rem;" onclick="showEditBotProfileModal('${b.bot_token}')">✏️ Profile</button>`;
+                actionBtns += `<button class="btn btn-block" onclick="deleteTelegramBot('${b.bot_token}')">🗑 Delete</button>`;
+            }
+            
+            return `
+                <tr>
+                    <td style="font-weight:bold;">${b.bot_name || 'Unnamed Bot'} ${defaultBadge} ${ownerInfo}</td>
+                    <td><a href="https://t.me/${b.bot_username}" target="_blank">@${b.bot_username}</a></td>
+                    <td>${statusBadge}</td>
+                    <td>${actionBtns}</td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    async function setScheduleDefaultBot(token) {
+        try {
+            const res = await fetch(`/api/telegram_bots/default?token=${sessionToken}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ bot_token: token })
+            });
+            if (res.ok) {
+                showToast('Default bot updated!');
+                fetchTelegramBots();
+            } else {
+                showToast('Error updating default bot', true);
+            }
+        } catch (e) {
+            console.error(e);
+            showToast('Error updating default bot', true);
+        }
+    }
+
+    async function addTelegramBot() {
+        const token = document.getElementById('tg_bot_token_input')?.value.trim();
+        if (!token) {
+            showToast('Bot Token is required!', true);
+            return;
+        }
+        document.getElementById('saveTgBotBtn').disabled = true;
+        document.getElementById('saveTgBotBtn').innerText = 'Adding...';
+        try {
+            const res = await fetch(`/api/telegram_bots?token=${sessionToken}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ bot_token: token })
+            });
+            const data = await res.json();
+            if (res.ok && data.success) {
+                showToast('Bot added successfully!');
+                document.getElementById('tg_bot_token_input').value = '';
+                fetchTelegramBots();
+            } else {
+                showToast(data.error || 'Failed to add bot', true);
+            }
+        } catch (err) {
+            showToast('Error adding bot', true);
+        } finally {
+            document.getElementById('saveTgBotBtn').disabled = false;
+            document.getElementById('saveTgBotBtn').innerText = 'Add Bot';
+        }
+    }
+    
+    async function adminUpdateBotStatus(userId, token, status) {
+        try {
+            const res = await fetch(`/api/telegram_bots/admin/status?token=${sessionToken}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user_id: userId, bot_token: token, status: status })
+            });
+            if (res.ok) {
+                fetchTelegramBots();
+            }
+        } catch (e) { showToast('Error updating status', true); }
+    }
+    
+    async function adminUpdateBotOtp(userId, token, canSendOtp) {
+        try {
+            const res = await fetch(`/api/telegram_bots/admin/otp?token=${sessionToken}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user_id: userId, bot_token: token, can_send_otp: canSendOtp })
+            });
+            if (res.ok) {
+                fetchTelegramBots();
+            }
+        } catch (e) { showToast('Error updating OTP status', true); }
+    }
+    
+    function showEditBotProfileModal(token) {
+        const name = prompt("Enter new bot name (leave blank to skip):");
+        const desc = prompt("Enter new description (leave blank to skip):");
+        const shortDesc = prompt("Enter new short description (leave blank to skip):");
+        if (name || desc || shortDesc) {
+            updateBotProfile(token, name, desc, shortDesc);
+        }
+    }
+    
+    async function updateBotProfile(token, name, desc, shortDesc) {
+        try {
+            const res = await fetch(`/api/telegram_bots/profile?token=${sessionToken}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ bot_token: token, name: name, description: desc, short_description: shortDesc })
+            });
+            if (res.ok) {
+                showToast('Profile updated!');
+                fetchTelegramBots();
+            } else {
+                showToast('Failed to update profile', true);
+            }
+        } catch(e) {
+            showToast('Error updating profile', true);
+        }
+    }
+    
+    async function toggleMultipleBots(userId) {
+        const val = prompt("Enter the maximum number of custom bots this user can add:", "1");
+        if (val === null) return;
+        const maxBots = parseInt(val, 10) || 1;
+        try {
+            const res = await fetch(`/api/telegram_bots/admin/multiple?token=${sessionToken}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user_id: userId, max_bots: maxBots })
+            });
+            if (res.ok) {
+                showToast(`Max custom bots set to ${maxBots}!`);
+            }
+        } catch(e) {
+            showToast('Error', true);
+        }
+    }
+    
+    async function deleteTelegramBot(token, ownerId = null) {
+        if (!confirm("Are you sure you want to delete this bot? This cannot be undone.")) return;
+        try {
+            let url = `/api/telegram_bots?token=${sessionToken}&bot_token=${token}`;
+            if (ownerId) url += `&target_user_id=${ownerId}`;
+            const res = await fetch(url, {
+                method: 'DELETE'
+            });
+            if (res.ok) {
+                showToast("Bot deleted successfully!");
+                fetchTelegramBots();
+            } else {
+                showToast("Failed to delete bot", true);
+            }
+        } catch(e) {
+            showToast("Error deleting bot", true);
+        }
+    }
+
+    let mediaLibraryItems = [];
+    const selectedMediaNames = new Set();
+
+    function mediaLibraryUrl(path, name, inline = false) {
+      const params = new URLSearchParams({ name, token: sessionToken });
+      if (inline) params.set('inline', '1');
+      const apiBase = getApiBase();
+      return `${apiBase ? apiBase : ''}${path}?${params.toString()}`;
+    }
+
+    async function loadMediaLibrary() {
+      const status = document.getElementById('mediaLibraryStatus');
+      const container = document.getElementById('mediaLibraryItems');
+      status.textContent = 'Loading local media...';
+      container.replaceChildren();
+      try {
+        const response = await fetch(`/api/library?token=${encodeURIComponent(sessionToken)}`);
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'Unable to load media library.');
+        mediaLibraryItems = data.items || [];
+        const availableNames = new Set(mediaLibraryItems.map(item => item.name));
+        for (const name of selectedMediaNames) {
+          if (!availableNames.has(name)) selectedMediaNames.delete(name);
+        }
+        status.textContent = mediaLibraryItems.length
+          ? `${mediaLibraryItems.length} video file(s) found.`
+          : 'No video files found. Add authorized media to the server media library folder.';
+
+        for (const item of mediaLibraryItems) {
+          const card = document.createElement('article');
+          card.className = 'media-library-card';
+          if (item.has_thumbnail) {
+            const image = document.createElement('img');
+            image.src = mediaLibraryUrl('/api/library/thumbnail', item.name, true);
+            image.alt = `Thumbnail for ${item.name}`;
+            card.appendChild(image);
+          }
+
+          const body = document.createElement('div');
+          body.className = 'media-library-card-body';
+          const label = document.createElement('label');
+          label.className = 'media-library-name';
+          const checkbox = document.createElement('input');
+          checkbox.type = 'checkbox';
+          checkbox.checked = selectedMediaNames.has(item.name);
+          checkbox.addEventListener('change', () => {
+            if (checkbox.checked) selectedMediaNames.add(item.name);
+            else selectedMediaNames.delete(item.name);
+          });
+          const name = document.createElement('span');
+          name.textContent = item.name;
+          label.append(checkbox, name);
+          body.appendChild(label);
+
+          const links = document.createElement('div');
+          links.className = 'media-library-links';
+          const videoLink = document.createElement('a');
+          videoLink.href = mediaLibraryUrl('/api/library/file', item.name);
+          videoLink.textContent = 'Download video';
+          links.appendChild(videoLink);
+          if (item.has_thumbnail) {
+            const thumbnailLink = document.createElement('a');
+            thumbnailLink.href = mediaLibraryUrl('/api/library/thumbnail', item.name);
+            thumbnailLink.textContent = 'Download thumbnail';
+            links.appendChild(thumbnailLink);
+          }
+          body.appendChild(links);
+          card.appendChild(body);
+          container.appendChild(card);
+        }
+      } catch (error) {
+        status.textContent = error.message || 'Unable to load media library.';
+        showToast(status.textContent, true);
+      }
+    }
+
+    function selectAllMedia() {
+      for (const item of mediaLibraryItems) selectedMediaNames.add(item.name);
+      loadMediaLibrary();
+    }
+
+    async function downloadSelectedMedia() {
+      const names = Array.from(selectedMediaNames);
+      if (!names.length) {
+        showToast('Select at least one video.', true);
+        return;
+      }
+      try {
+        const response = await fetch(`/api/library/download?token=${encodeURIComponent(sessionToken)}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ names })
+        });
+        if (!response.ok) {
+          const data = await response.json();
+          throw new Error(data.error || 'Unable to create download.');
+        }
+        const downloadUrl = URL.createObjectURL(await response.blob());
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+        link.download = 'media-library.zip';
+        link.click();
+        setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000);
+      } catch (error) {
+        showToast(error.message || 'Download failed.', true);
+      }
+    }
+
+    function downloadAllMedia() {
+      for (const item of mediaLibraryItems) selectedMediaNames.add(item.name);
+      downloadSelectedMedia();
+    }
+
+    // ================================================================
+    // YouTube Direct Downloader
+    // ================================================================
+    let _ytCurrentUrl = '';
+    let _ytFormats    = [];
+
+    function ytFmtSize(bytes) {
+      if (!bytes || bytes <= 0) return 'Unknown size';
+      if (bytes >= 1073741824) return (bytes / 1073741824).toFixed(1) + ' GB';
+      if (bytes >= 1048576)    return (bytes / 1048576).toFixed(1) + ' MB';
+      return (bytes / 1024).toFixed(0) + ' KB';
+    }
+
+    function ytFmtDuration(secs) {
+      if (!secs) return '';
+      const h = Math.floor(secs / 3600);
+      const m = Math.floor((secs % 3600) / 60);
+      const s = Math.floor(secs % 60);
+      return h ? `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`
+               : `${m}:${String(s).padStart(2,'0')}`;
+    }
+
+    async function ytFetchInfo() {
+      const url = document.getElementById('ytUrlInput').value.trim();
+      if (!url) { ytShowError('Please paste a YouTube URL first.'); return; }
+      ytClearError();
+      document.getElementById('ytResult').style.display = 'none';
+      document.getElementById('ytDownloadProgress').style.display = 'none';
+
+      const btn = document.getElementById('ytSearchBtn');
+      btn.disabled = true;
+      document.getElementById('ytSearchBtnText').textContent = '⏳ Analysing...';
+
+      try {
+        const res = await fetch(`/api/yt/info?url=${encodeURIComponent(url)}&token=${sessionToken}`);
+        const data = await res.json();
+        if (!res.ok || data.error) { ytShowError(data.error || 'Failed to fetch video info.'); return; }
+
+        _ytCurrentUrl = url;
+        _ytFormats    = data.formats || [];
+
+        document.getElementById('ytThumb').src       = data.thumbnail || '';
+        document.getElementById('ytTitle').textContent    = data.title || 'Unknown Title';
+        document.getElementById('ytUploader').textContent = data.uploader ? '🎬 ' + data.uploader : '';
+        document.getElementById('ytDuration').textContent = data.duration ? '⏱ ' + ytFmtDuration(data.duration) : '';
+
+        // Build format cards
+        const grid = document.getElementById('ytFormats');
+        grid.innerHTML = '';
+        _ytFormats.forEach((fmt, i) => {
+          const card = document.createElement('div');
+          card.className = 'yt-fmt-card' + (i === 0 ? ' selected' : '');
+          card.id        = `ytfmt-${i}`;
+          card.innerHTML = `
+            <div class="yt-fmt-card-inner">
+              <span class="yt-fmt-type-badge ${fmt.type === 'video' ? 'yt-fmt-video' : 'yt-fmt-audio'}">
+                ${fmt.type === 'video' ? '🎬 Video' : '🎵 Audio'}
+              </span>
+              <div class="yt-fmt-label">${fmt.label}</div>
+              <div class="yt-fmt-size">${ytFmtSize(fmt.filesize)}</div>
+              <div style="display: flex; gap: 5px; margin-top: 10px;">
+                <button class="yt-dl-btn" style="flex:1;" onclick="ytDownload(${i}, this)">⬇ Device</button>
+                <button class="yt-dl-btn" style="flex:1; background: var(--primary);" onclick="ytSendToTelegram(${i}, this)">✈ Telegram</button>
+              </div>
+            </div>
+          `;
+          card.onclick = (e) => {
+            if (e.target.classList.contains('yt-dl-btn')) return;
+            document.querySelectorAll('.yt-fmt-card').forEach(c => c.classList.remove('selected'));
+            card.classList.add('selected');
+          };
+          grid.appendChild(card);
+        });
+
+        if (_ytFormats.length === 0) {
+          grid.innerHTML = '<p style="color:var(--text-muted);padding:1rem;">No downloadable formats found. Try another video.</p>';
+        }
+
+        document.getElementById('ytResult').style.display = 'block';
+      } catch(e) {
+        ytShowError('Network error: ' + e.message);
+      } finally {
+        btn.disabled = false;
+        document.getElementById('ytSearchBtnText').textContent = '🔍 Analyse';
+      }
+    }
+
+    async function ytDownload(fmtIdx, btnEl) {
+      const fmt = _ytFormats[fmtIdx];
+      if (!fmt) return;
+
+      const card = btnEl.closest('.yt-fmt-card');
+      const taskId = "device_" + Date.now() + "_" + Math.floor(Math.random()*10000);
+
+      // Disable button and show progress
+      btnEl.disabled = true;
+      btnEl.textContent = '⏳ Starting...';
+      card.classList.add('in-progress');
+      card.style.setProperty('--progress', '0%');
+      
+      document.getElementById('ytProgressText').textContent = 'Starting background task to download to server...';
+      document.getElementById('ytDownloadProgress').style.display = 'block';
+      document.getElementById('ytDownloadProgress').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+      try {
+        const res = await fetch(`/api/yt/download_device?token=${sessionToken}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            url: _ytCurrentUrl, 
+            format_id: fmt.format_id,
+            task_id: taskId
+          })
+        });
+        const data = await res.json();
+
+        if (!res.ok || data.error) {
+          ytShowError('Failed to start device download: ' + (data.error || 'Unknown error'));
+          document.getElementById('ytDownloadProgress').style.display = 'none';
+          btnEl.disabled = false;
+          btnEl.textContent = '⬇ Device';
+          card.classList.remove('in-progress');
+          return;
+        }
+
+        // Start polling
+        let pollTimer = setInterval(async () => {
+          try {
+            const pollRes = await fetch(`/api/progress?token=${sessionToken}&task_id=${taskId}`);
+            if (!pollRes.ok) return;
+            const pollData = await pollRes.json();
+            
+            if (pollData.status === 'running') {
+              btnEl.textContent = `⏳ ${pollData.percent}%`;
+              card.style.setProperty('--progress', `${pollData.percent}%`);
+              document.getElementById('ytProgressText').textContent = pollData.text;
+            } else if (pollData.status === 'done') {
+              clearInterval(pollTimer);
+              card.style.setProperty('--progress', `100%`);
+              btnEl.textContent = '✅ Ready!';
+              
+              document.getElementById('ytProgressText').textContent = '✅ File ready! Starting browser download...';
+              
+              const a = document.createElement('a');
+              a.href     = pollData.download_url;
+              a.download = '';
+              a.target   = '_blank';
+              a.rel      = 'noopener';
+              document.body.appendChild(a);
+              a.click();
+              document.body.removeChild(a);
+
+              setTimeout(() => {
+                document.getElementById('ytDownloadProgress').style.display = 'none';
+                card.classList.remove('in-progress');
+                btnEl.disabled = false;
+                btnEl.textContent = '⬇ Device';
+                showToast('Download started! Check your browser downloads 🎉');
+              }, 4000);
+            } else if (pollData.status === 'error') {
+              clearInterval(pollTimer);
+              ytShowError('Task failed: ' + pollData.text);
+              document.getElementById('ytDownloadProgress').style.display = 'none';
+              card.classList.remove('in-progress');
+              btnEl.disabled = false;
+              btnEl.textContent = '⬇ Device';
+            }
+          } catch(e) {
+            console.error("Polling error", e);
+          }
+        }, 1500);
+
+      } catch(e) {
+        ytShowError('Network error: ' + e.message);
+        document.getElementById('ytDownloadProgress').style.display = 'none';
+        card.classList.remove('in-progress');
+        btnEl.disabled = false;
+        btnEl.textContent = '⬇ Device';
+      }
+    }
+
+    async function ytSendToTelegram(fmtIdx, btnEl) {
+      const fmt = _ytFormats[fmtIdx];
+      if (!fmt) return;
+
+      let numClips = 1;
+      const TWO_GB = 1.95 * 1024 * 1024 * 1024;
+      if (fmt.filesize && fmt.filesize > TWO_GB) {
+        const input = prompt("This video exceeds Telegram's 2GB limit. How many clips do you want to split it into? (e.g., enter 2 to split in half)");
+        if (!input) return;
+        numClips = parseInt(input, 10);
+        if (isNaN(numClips) || numClips < 1) {
+          ytShowError('Invalid number of clips.');
+          return;
+        }
+      } else {
+        const input = prompt("How many clips do you want to split this into? (Leave blank or enter 1 for no splitting)");
+        if (input !== null && input.trim() !== '') {
+          numClips = parseInt(input, 10);
+          if (isNaN(numClips) || numClips < 1) {
+            ytShowError('Invalid number of clips.');
+            return;
+          }
+        }
+      }
+
+      // Disable button and show progress
+      const originalText = btnEl.textContent;
+      const card = btnEl.closest('.yt-fmt-card');
+      const taskId = "tg_" + Date.now() + "_" + Math.floor(Math.random()*10000);
+      
+      btnEl.disabled = true;
+      btnEl.textContent = '⏳ Starting...';
+      card.classList.add('in-progress');
+      card.style.setProperty('--progress', '0%');
+      
+      document.getElementById('ytProgressText').textContent = 'Starting background task to send to Telegram...';
+      document.getElementById('ytDownloadProgress').style.display = 'block';
+      document.getElementById('ytDownloadProgress').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+      try {
+        const res = await fetch(`/api/yt/send_telegram?token=${sessionToken}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            url: _ytCurrentUrl, 
+            format_id: fmt.format_id,
+            num_clips: numClips,
+            task_id: taskId
+          })
+        });
+        const data = await res.json();
+
+        if (!res.ok || data.error) {
+          ytShowError('Failed to start Telegram send: ' + (data.error || 'Unknown error'));
+          document.getElementById('ytDownloadProgress').style.display = 'none';
+          btnEl.disabled = false;
+          btnEl.textContent = originalText;
+          card.classList.remove('in-progress');
+          return;
+        }
+
+        // Start polling
+        let pollTimer = setInterval(async () => {
+          try {
+            const pollRes = await fetch(`/api/progress?token=${sessionToken}&task_id=${taskId}`);
+            if (!pollRes.ok) return;
+            const pollData = await pollRes.json();
+            
+            if (pollData.status === 'running') {
+              btnEl.textContent = `⏳ ${pollData.percent}%`;
+              card.style.setProperty('--progress', `${pollData.percent}%`);
+              document.getElementById('ytProgressText').textContent = pollData.text;
+            } else if (pollData.status === 'done') {
+              clearInterval(pollTimer);
+              card.style.setProperty('--progress', `100%`);
+              btnEl.textContent = '✅ Sent!';
+              document.getElementById('ytProgressText').textContent = '✅ Successfully sent to your Telegram bot!';
+              setTimeout(() => {
+                document.getElementById('ytDownloadProgress').style.display = 'none';
+                card.classList.remove('in-progress');
+                btnEl.disabled = false;
+                btnEl.textContent = originalText;
+              }, 4000);
+            } else if (pollData.status === 'error') {
+              clearInterval(pollTimer);
+              ytShowError('Task failed: ' + pollData.text);
+              document.getElementById('ytDownloadProgress').style.display = 'none';
+              card.classList.remove('in-progress');
+              btnEl.disabled = false;
+              btnEl.textContent = originalText;
+            }
+          } catch(e) {
+            console.error("Polling error", e);
+          }
+        }, 1500);
+
+      } catch(e) {
+        ytShowError('Network error: ' + e.message);
+        document.getElementById('ytDownloadProgress').style.display = 'none';
+        card.classList.remove('in-progress');
+        btnEl.disabled = false;
+        btnEl.textContent = originalText;
+      }
+    }
+
+    function ytShowError(msg) {
+      const el = document.getElementById('ytError');
+      el.textContent = '❌ ' + msg;
+      el.style.display = 'block';
+    }
+
+    function ytClearError() {
+      document.getElementById('ytError').style.display = 'none';
+    }
+
+  </script>
+  <!-- Modal: Assign Dedicated Server -->
+  <div id="assignServerModal" style="display:none; position:fixed; z-index:99999; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.75); backdrop-filter:blur(6px); align-items:center; justify-content:center;">
+    <div style="background:#1e1e2f; border:1px solid #3b82f6; border-radius:16px; padding:1.8rem; width:92%; max-width:440px; box-shadow:0 20px 40px rgba(0,0,0,0.7); color:#fff;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.2rem;">
+        <h3 style="margin:0; font-size:1.2rem; display:flex; align-items:center; gap:0.5rem;">🖥 Assign Server / កំណត់ Server</h3>
+        <button onclick="closeAssignServerModal()" style="background:transparent; border:none; color:#9ca3af; font-size:1.6rem; cursor:pointer; line-height:1;">&times;</button>
+      </div>
+      <p style="color:#94a3b8; font-size:0.88rem; margin-bottom:1.2rem; line-height:1.4;">
+        Assign user <strong id="assignServerTargetName" style="color:#60a5fa;"></strong> to dedicated execution server:
+      </p>
+      
+      <div style="display:flex; flex-direction:column; gap:0.75rem; margin-bottom:1.5rem;">
+        <label style="display:flex; align-items:center; gap:0.8rem; background:#2a2b40; padding:0.8rem 1rem; border-radius:10px; cursor:pointer; border:1px solid #4b5563;">
+          <input type="radio" name="srvOption" value="main" id="srvOptMain" onchange="toggleCustomServerInput()">
+          <div>
+            <div style="font-weight:600; font-size:0.95rem;">🖥 main (Default Main Server)</div>
+            <div style="font-size:0.78rem; color:#94a3b8;">Primary global bot & dashboard instance</div>
+          </div>
+        </label>
+        <label style="display:flex; align-items:center; gap:0.8rem; background:#2a2b40; padding:0.8rem 1rem; border-radius:10px; cursor:pointer; border:1px solid #4b5563;">
+          <input type="radio" name="srvOption" value="server1" id="srvOptServer1" onchange="toggleCustomServerInput()">
+          <div>
+            <div style="font-weight:600; font-size:0.95rem; color:#38bdf8;">⚡ server1 (Dedicated Worker Server 1)</div>
+            <div style="font-size:0.78rem; color:#94a3b8;">Dedicated server for all downloads, dubbing & AI</div>
+          </div>
+        </label>
+        <label style="display:flex; align-items:center; gap:0.8rem; background:#2a2b40; padding:0.8rem 1rem; border-radius:10px; cursor:pointer; border:1px solid #4b5563;">
+          <input type="radio" name="srvOption" value="server2" id="srvOptServer2" onchange="toggleCustomServerInput()">
+          <div>
+            <div style="font-weight:600; font-size:0.95rem; color:#a78bfa;">⚡ server2 (Dedicated Worker Server 2)</div>
+            <div style="font-size:0.78rem; color:#94a3b8;">Dedicated server for all downloads, dubbing & AI</div>
+          </div>
+        </label>
+        <label style="display:flex; align-items:center; gap:0.8rem; background:#2a2b40; padding:0.8rem 1rem; border-radius:10px; cursor:pointer; border:1px solid #4b5563;">
+          <input type="radio" name="srvOption" value="server3" id="srvOptServer3" onchange="toggleCustomServerInput()">
+          <div>
+            <div style="font-weight:600; font-size:0.95rem; color:#34d399;">⚡ server3 (Dedicated Worker Server 3)</div>
+            <div style="font-size:0.78rem; color:#94a3b8;">Dedicated server for all downloads, dubbing & AI</div>
+          </div>
+        </label>
+        <label style="display:flex; align-items:center; gap:0.8rem; background:#2a2b40; padding:0.8rem 1rem; border-radius:10px; cursor:pointer; border:1px solid #4b5563;">
+          <input type="radio" name="srvOption" value="server4" id="srvOptServer4" onchange="toggleCustomServerInput()">
+          <div>
+            <div style="font-weight:600; font-size:0.95rem; color:#fbbf24;">⚡ server4 (Dedicated Worker Server 4)</div>
+            <div style="font-size:0.78rem; color:#94a3b8;">Dedicated server for all downloads, dubbing & AI</div>
+          </div>
+        </label>
+        <label style="display:flex; align-items:center; gap:0.8rem; background:#2a2b40; padding:0.8rem 1rem; border-radius:10px; cursor:pointer; border:1px solid #4b5563;">
+          <input type="radio" name="srvOption" value="server5" id="srvOptServer5" onchange="toggleCustomServerInput()">
+          <div>
+            <div style="font-weight:600; font-size:0.95rem; color:#f472b6;">⚡ server5 (Dedicated Worker Server 5)</div>
+            <div style="font-size:0.78rem; color:#94a3b8;">Dedicated server for all downloads, dubbing & AI</div>
+          </div>
+        </label>
+        <label style="display:flex; align-items:center; gap:0.8rem; background:#2a2b40; padding:0.8rem 1rem; border-radius:10px; cursor:pointer; border:1px solid #4b5563;">
+          <input type="radio" name="srvOption" value="custom" id="srvOptCustom" onchange="toggleCustomServerInput()">
+          <div>
+            <div style="font-weight:600; font-size:0.95rem;">🌐 Custom Server ID</div>
+            <div style="font-size:0.78rem; color:#94a3b8;">Specify a custom worker server name (e.g. server2)</div>
+          </div>
+        </label>
+        <input type="text" id="customServerInput" placeholder="Enter server name..." style="display:none; width:100%; padding:0.65rem 0.9rem; border-radius:8px; border:1px solid #3b82f6; background:#141420; color:#fff; font-size:0.9rem; box-sizing:border-box;">
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:0.75rem;">
+        <button onclick="closeAssignServerModal()" class="btn" style="background:#4b5563; color:#fff; border-radius:8px; padding:0.6rem 1.2rem; cursor:pointer;">Cancel</button>
+        <button onclick="saveAssignServer()" class="btn btn-promote" style="border-radius:8px; padding:0.6rem 1.4rem; cursor:pointer; font-weight:600;">💾 Save Server</button>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

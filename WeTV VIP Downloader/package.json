@@ -1,0 +1,16 @@
+{
+  "name": "wetv-downloader",
+  "version": "1.0.0",
+  "description": "Downloader for WeTV / wetv.vip and v.qq.com VIP and standard series and episodes.",
+  "type": "commonjs",
+  "main": "lib/wetv.js",
+  "private": true,
+  "author": {
+    "name": "Sdach Moan WeTV VIP Downloader"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "MIT"
+}
+

@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: UdomAI-Bot
+    runtime: docker
+    plan: pro_plus
+    branch: main
+    healthCheckPath: /healthz
+    envVars:
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false

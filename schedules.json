@@ -1,0 +1,58 @@
+{
+  "7591901012": [
+    {
+      "task_type": "dubb",
+      "run_time": "2026-11-08T14:18:00.000Z",
+      "data": "{\"url\":\"https://hongguoduanju.com/detail?series_id=7701357402754386968\",\"merge_parts\":6,\"source_lang\":\"auto\",\"lang\":\"km\",\"whisper_model\":\"gemini\",\"transcribe_engine\":\"gemini\",\"translate_engine\":\"gemini\",\"voice_engine\":\"voxcpm2\",\"tts_backend\":\"voxcpm2\",\"voxcpm_model\":\"openbmb/VoxCPM1.5\",\"need_bg_sound\":false,\"thumbnail\":null,\"post_to_fb\":true,\"fb_target\":\"aimovie\",\"fb_text\":\"🎥 ​រឿង៖ «${title} » ភាគ ${ep} 🎙️/n បកប្រែ និងបញ្ចូលសំឡេងដោយ៖ « Live ALONE & AI KHMER MOVIE »    /nសូមរីករាយទស្សនាដោយមេត្រី!   #fypシ #viralreelschallenge #fypシ゚viralシ\",\"tags\":\"815554075444572\",\"collaborators\":\"815554075444572\",\"bot_token\":\"main_bot\"}",
+      "id": "0398e69f-8e13-4dfc-88ae-0d7c755915f6",
+      "last_run": "DONE",
+      "status": "⏹ Stopped by user"
+    },
+    {
+      "task_type": "facebook_post",
+      "run_time": "2026-11-10T13:44:00.000Z",
+      "data": "{\"text\":\"test\",\"file_url\":null,\"title\":\"\",\"page_id\":\"\",\"page_token\":\"\",\"thumbnail\":null,\"tags\":\"\",\"collaborators\":\"\",\"bot_token\":\"main_bot\"}",
+      "id": "857f81a1-c554-4e9f-a3c9-9fe33a9113d4",
+      "last_run": "DONE",
+      "status": "Failed"
+    }
+  ],
+  "8542513465": [
+    {
+      "task_type": "facebook_post",
+      "run_time": "2026-11-08T15:05:00.000Z",
+      "data": "{\"text\":\" 🎥 រឿង៖ «${title} » ភាគ ${ep} 🎙️/n បកប្រែ និងបញ្ចូលសំឡេងដោយ៖ « Live ALONE & AI KHMER MOVIE » /nសូមរីករាយទស្សនាដោយមេត្រី! #fypシ #viralreelschallenge #fypシ゚viralシ\",\"file_url\":null,\"title\":\"\",\"page_id\":\"\",\"page_token\":\"\",\"thumbnail\":null,\"tags\":\"\",\"collaborators\":\"\",\"bot_token\":\"8978215267:AAHjn2gf-hIiRIwSrPvAXwFDiZz2pV8X2CY\"}",
+      "id": "01de043d-f1d4-40d1-84b0-18b9cc613db8",
+      "last_run": "DONE",
+      "status": "Running",
+      "completed_vids": [
+        "7703525725734718489",
+        "7703525688074062873",
+        "7703525546000403481",
+        "7703525547720051737",
+        "7703525757103918105",
+        "7703525733896817689",
+        "7703525604733226009",
+        "7703525739936631833",
+        "7703525549590727705",
+        "7703525745292758041",
+        "7703525562278480921",
+        "7703525771867868185",
+        "7703525777064594457",
+        "7703525803979443225",
+        "7703525592993385497",
+        "7703525627525090329",
+        "7703525620700957721",
+        "7703525759997971481",
+        "7703525638585453593",
+        "7703525585712073753",
+        "7703525594603981849",
+        "7703525551251672089",
+        "7703525770223684633",
+        "7703525583988214809",
+        "7703525702464719897",
+        "7703525624937204761"
+      ]
+    }
+  ]
+}

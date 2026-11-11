@@ -1,0 +1,21 @@
+{
+  "name": "hongguo-downloader",
+  "version": "1.0.0",
+  "description": "Downloader for hongguoduanju.com / 红果短剧 short dramas (all episodes, via the app API, with native CENC decryption). Electron desktop app plus CLI.",
+  "type": "commonjs",
+  "main": "out/main/index.js",
+  "private": true,
+  "author": {
+    "name": "Sdach Moan Houngguo VIP Downloader",
+    "email": "vornraingseyvong@gmail.com"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "lucide-react": "^0.468.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "license": "MIT"
+}

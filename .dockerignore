@@ -1,0 +1,16 @@
+venv/
+__pycache__/
+*.mp4
+*.mkv
+*.webm
+*.part
+*.ytdl
+*.session
+*.session-journal
+.env
+.git/
+.tempmediaStorage/
+temp_downloads/
+*.jpg
+*.png
+fdown.html

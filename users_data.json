@@ -1,0 +1,94 @@
+{
+  "7591901012": {
+    "user_id": 7591901012,
+    "username": "udomai",
+    "first_name": "THENG RITHY",
+    "last_name": "🍥",
+    "status": "APPROVED",
+    "role": "SUPER_ADMIN",
+    "joined_at": "2026-11-07 16:50:11",
+    "last_active": "2026-11-09 01:48:52",
+    "request_count": 434,
+    "password_hash": "6e0753806d418a16aaa4029bcb6284e933e82b1dcaea6649fce59557bfa78352:2231a30558f2cd530393278b68d0b135a3d4511b8412ed57a655994fe8c01855",
+    "telegram_bots": [
+      {
+        "bot_token": "8942178405:AAF_4o1aAgZtnqsCjtqxXwo_NXZuLtH06CQ",
+        "bot_username": "UdomAI_Registration_bot",
+        "bot_name": "Udom AI Registration",
+        "status": "APPROVED",
+        "can_send_otp": false
+      },
+      {
+        "bot_token": "8089358296:AAFx-1H66BxVQFHm1cfTqRUe3zymm7nbSfM",
+        "bot_username": "jit_laor_bot",
+        "bot_name": "Jit_Laor",
+        "status": "APPROVED",
+        "can_send_otp": false
+      }
+    ],
+    "assigned_server": "main",
+    "fb_pages": [
+      {
+        "page_name": "Live",
+        "page_id": "815554075444572",
+        "page_token": "EAAPZC6267ZC4cBS4aeSaYTCFJR8xdeYJCxN690EhlDGans7o9QyOfr8Pfh1aA1DyygVvXjG4LSzvGPVC2RGI6ZAQB7LP65RYQlp5GF90f1vJAzBUtNGucixqRI52yDwB26Lg1LvCZBwzjNjwaZCg1eTjIQnSwaU0iV430BbkZBuohB5rnZAP5wRsOvmnbcDY7Jy597alr5k"
+      },
+      {
+        "page_name": "MovieAI",
+        "page_id": "1095444280320073",
+        "page_token": "EAAPZC6267ZC4cBS2B15AGCtq2sWnmC5svmpfuwn6hUA8HZCwgWv1ZB6VFIrmrYW2ClsJbh03cRDANaPmiE7HT20PhMBB4VPZCEThhXKghyzdjboQtAp7Kw1nGKZB0PVMWa1mnCPZCtMG2XmwZCNB7EhgHFJUJoIggJiXxVDfv4aSKlonNedHQ2JrBpfvav4hwAalODFHLXBU"
+      }
+    ],
+    "transcribe_engine": "local",
+    "whisper_model": "small",
+    "translate_engine": "gemini",
+    "tts_backend": "voxcpm2",
+    "voxcpm_model": "openbmb/VoxCPM1.5"
+  },
+  "__system_config__": {
+    "gemini_api_keys": [
+      "AQ.Ab8RN6Kn0x0hAOs7kTpJswapi8kU-pQH5Ir5ZieDwY5n3S7I5A",
+      "AQ.Ab8RN6K6QPwAJu6juNc3c-B7B196dsQwVp96Pktw-Px3F2NmjA"
+    ],
+    "admin_contact": "",
+    "otp_bot_token": "8942178405:AAF_4o1aAgZtnqsCjtqxXwo_NXZuLtH06CQ",
+    "otp_bot_restricted_mode": true,
+    "webapp_url": "",
+    "default_transcribe_engine": "local",
+    "default_translate_engine": "gemini",
+    "default_voxcpm_model": "openbmb/VoxCPM1.5",
+    "default_whisper_model": "small",
+    "default_tts_backend": "voxcpm2"
+  },
+  "8542513465": {
+    "user_id": 8542513465,
+    "username": "laorsoftware",
+    "first_name": "Laor Software",
+    "last_name": "by R.TENG 🍥",
+    "status": "APPROVED",
+    "role": "USER",
+    "assigned_server": "server1",
+    "joined_at": "2026-11-08 09:12:17",
+    "last_active": "2026-11-08 22:52:48",
+    "request_count": 25,
+    "password_hash": "b9e431865675218f6f98469fc8ea664d8e43180637554aa75cfd50962192bd1f:706d47dcf0c65b0c37e65622e644ae07a847ec143d34fbc1960dd32bccf9cb27",
+    "telegram_bots": [
+      {
+        "bot_token": "8978215267:AAHjn2gf-hIiRIwSrPvAXwFDiZz2pV8X2CY",
+        "bot_username": "udomtest_bot",
+        "bot_name": "DubberStudio_bot",
+        "status": "APPROVED",
+        "can_send_otp": false
+      }
+    ],
+    "default_schedule_bot": "8978215267:AAHjn2gf-hIiRIwSrPvAXwFDiZz2pV8X2CY",
+    "fb_pages_access": [
+      "aimovie"
+    ],
+    "transcribe_engine": "local",
+    "whisper_model": "small",
+    "translate_engine": "gemini",
+    "tts_backend": "voxcpm2",
+    "voxcpm_model": "openbmb/VoxCPM1.5"
+  }
+}

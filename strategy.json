@@ -1,0 +1,65 @@
+{
+  "version": 1,
+  "last_updated": "2026-11-07 16:47:07",
+  "provider_order": {
+    "auto": [
+      "gemini",
+      "pollinations",
+      "g4f",
+      "ddgs"
+    ],
+    "gemini": [
+      "gemini-2.0-flash",
+      "gemini-2.0-flash-thinking-exp",
+      "gemini-1.5-pro",
+      "gemini-1.5-flash"
+    ],
+    "pollinations": [
+      "openai",
+      "qwen-coder",
+      "llama",
+      "deepseek"
+    ],
+    "g4f": [
+      "gpt-4o",
+      "claude-3.5-sonnet",
+      "deepseek-v3",
+      "gpt-3.5-turbo"
+    ],
+    "ddgs": [
+      "gpt-4o-mini"
+    ]
+  },
+  "provider_health": {
+    "gemini": {
+      "success_rate": 100.0,
+      "total_calls": 0,
+      "failures": 0,
+      "status": "HEALTHY"
+    },
+    "pollinations": {
+      "success_rate": 100.0,
+      "total_calls": 0,
+      "failures": 0,
+      "status": "HEALTHY"
+    },
+    "g4f": {
+      "success_rate": 100.0,
+      "total_calls": 0,
+      "failures": 0,
+      "status": "HEALTHY"
+    },
+    "ddgs": {
+      "success_rate": 100.0,
+      "total_calls": 0,
+      "failures": 0,
+      "status": "HEALTHY"
+    }
+  },
+  "timeout_config": {
+    "gemini": 6,
+    "pollinations": 12,
+    "g4f": 15,
+    "ddgs": 10
+  }
+}

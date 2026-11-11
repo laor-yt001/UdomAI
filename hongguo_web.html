@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>🎬 VIP Downloader — Hongguo & YouTube</title>
+<style>
+  :root {
+    --bg:       #0f0f13;
+    --surface:  #1a1a24;
+    --card:     #22222f;
+    --border:   #33334a;
+    --accent:   #e63946;
+    --accent2:  #ff6b6b;
+    --gold:     #ffd166;
+    --green:    #06d6a0;
+    --blue:     #4dabf7;
+    --text:     #e8e8f0;
+    --muted:    #888899;
+    --radius:   14px;
+    --shadow:   0 8px 32px rgba(0,0,0,0.5);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh}
+
+  /* ── Header ── */
+  header{
+    background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);
+    padding:28px 24px 20px;text-align:center;
+    border-bottom:2px solid var(--border);
+    box-shadow:var(--shadow);
+  }
+  header h1{font-size:2rem;font-weight:800;letter-spacing:-0.5px;
+    background:linear-gradient(90deg,var(--accent) 0%,var(--gold) 50%,var(--accent2) 100%);
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  }
+  header p{color:var(--muted);margin-top:6px;font-size:.93rem}
+
+  /* ── Tabs ── */
+  .tabs{display:flex;justify-content:center;gap:0;margin:24px auto 0;max-width:520px;
+    background:var(--surface);border-radius:var(--radius);padding:4px;border:1px solid var(--border)}
+  .tab{flex:1;padding:10px 20px;border:none;border-radius:calc(var(--radius) - 4px);cursor:pointer;
+    font-size:.95rem;font-weight:600;transition:.2s;background:transparent;color:var(--muted)}
+  .tab.active{background:var(--accent);color:#fff;box-shadow:0 2px 12px rgba(230,57,70,.4)}
+  .tab:hover:not(.active){background:var(--border);color:var(--text)}
+
+  /* ── Main layout ── */
+  main{max-width:900px;margin:28px auto;padding:0 16px 60px}
+
+  /* ── Panel ── */
+  .panel{display:none}
+  .panel.active{display:block}
+
+  /* ── Card ── */
+  .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin-bottom:20px;box-shadow:var(--shadow)}
+  .card h2{font-size:1.1rem;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+
+  /* ── Input group ── */
+  .input-group{display:flex;gap:10px;margin-bottom:0}
+  .input-group input{flex:1;padding:12px 16px;border-radius:10px;border:1.5px solid var(--border);
+    background:var(--surface);color:var(--text);font-size:.95rem;outline:none;transition:.2s}
+  .input-group input:focus{border-color:var(--accent)}
+  .input-group input::placeholder{color:var(--muted)}
+  .btn{padding:12px 20px;border-radius:10px;border:none;cursor:pointer;font-size:.9rem;font-weight:600;
+    transition:.2s;white-space:nowrap}
+  .btn-primary{background:var(--accent);color:#fff}
+  .btn-primary:hover{background:var(--accent2);transform:translateY(-1px)}
+  .btn-secondary{background:var(--surface);color:var(--text);border:1px solid var(--border)}
+  .btn-secondary:hover{background:var(--border)}
+  .btn-gold{background:var(--gold);color:#111}
+  .btn-gold:hover{filter:brightness(1.1)}
+  .btn-green{background:var(--green);color:#111}
+  .btn-green:hover{filter:brightness(1.1)}
+  .btn-blue{background:var(--blue);color:#111}
+  .btn-sm{padding:7px 14px;font-size:.82rem}
+  .btn:disabled{opacity:.45;cursor:not-allowed;transform:none!important}
+
+  /* ── Series info card ── */
+  .series-info{display:flex;gap:20px;align-items:flex-start}
+  .series-cover{width:120px;height:160px;object-fit:cover;border-radius:10px;
+    border:2px solid var(--border);flex-shrink:0;cursor:pointer}
+  .series-cover:hover{opacity:.85}
+  .series-meta{flex:1;min-width:0}
+  .series-title{font-size:1.2rem;font-weight:800;margin-bottom:6px;line-height:1.3}
+  .series-tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+  .tag{padding:3px 10px;border-radius:20px;font-size:.78rem;background:var(--surface);border:1px solid var(--border);color:var(--muted)}
+  .series-intro{font-size:.87rem;color:var(--muted);line-height:1.6;max-height:72px;overflow:hidden}
+  .series-stats{display:flex;gap:16px;margin-top:10px;font-size:.85rem;color:var(--muted)}
+  .stat span{font-weight:700;color:var(--text)}
+
+  /* ── Episode grid ── */
+  .ep-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:8px;margin-top:4px}
+  .ep-btn{padding:9px 6px;border-radius:9px;border:1.5px solid var(--border);background:var(--surface);
+    color:var(--text);cursor:pointer;font-size:.82rem;font-weight:600;text-align:center;transition:.2s;user-select:none}
+  .ep-btn.selected{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 2px 8px rgba(230,57,70,.4)}
+  .ep-btn:hover:not(.selected){border-color:var(--accent2);color:var(--accent2)}
+
+  /* ── Episode actions bar ── */
+  .ep-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;align-items:center}
+  .ep-sel-count{flex:1;color:var(--muted);font-size:.88rem}
+
+  /* ── Progress ── */
+  .progress-wrap{margin-top:16px;display:none}
+  .progress-bar-bg{height:10px;background:var(--border);border-radius:5px;overflow:hidden}
+  .progress-bar{height:10px;background:linear-gradient(90deg,var(--accent),var(--gold));border-radius:5px;width:0%;transition:.5s}
+  .progress-text{margin-top:6px;font-size:.85rem;color:var(--muted)}
+
+  /* ── Download queue ── */
+  .file-list{display:flex;flex-direction:column;gap:8px;margin-top:14px}
+  .file-item{display:flex;align-items:center;justify-content:space-between;gap:12px;
+    padding:10px 14px;background:var(--surface);border-radius:9px;border:1px solid var(--border)}
+  .file-item-name{font-size:.87rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+  .file-item-dl{flex-shrink:0}
+
+  /* ── YT panel ── */
+  .yt-thumb{max-width:100%;border-radius:10px;margin-top:12px;display:none}
+  .yt-info-box{margin-top:14px;display:none}
+  .yt-title{font-size:1rem;font-weight:700;margin-bottom:6px}
+  .yt-meta{font-size:.82rem;color:var(--muted);margin-bottom:12px}
+
+  /* ── Toast ── */
+  #toast{position:fixed;bottom:24px;right:24px;padding:12px 20px;border-radius:10px;
+    background:#22222f;border:1px solid var(--border);color:var(--text);font-size:.9rem;
+    box-shadow:var(--shadow);transform:translateY(60px);opacity:0;transition:.3s;z-index:999}
+  #toast.show{transform:translateY(0);opacity:1}
+  #toast.error{border-color:var(--accent);color:var(--accent)}
+  #toast.ok{border-color:var(--green);color:var(--green)}
+
+  /* ── Responsive ── */
+  @media(max-width:600px){
+    header h1{font-size:1.4rem}
+    .series-info{flex-direction:column;align-items:center;text-align:center}
+    .series-cover{width:100px;height:134px}
+    .input-group{flex-direction:column}
+    .ep-actions{flex-direction:column}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div style="display:flex;justify-content:space-between;align-items:center;max-width:900px;margin:0 auto 12px;padding:0 8px;">
+    <a href="/" class="btn btn-secondary btn-sm" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;font-weight:600;">⬅️ Main Dashboard</a>
+    <div></div>
+  </div>
+  <h1>🎬 VIP Downloader</h1>
+  <p>WeTV, iQIYI, Hongguo Series &amp; YouTube — Full episodes, VIP cookies, thumbnails</p>
+</header>
+
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('hongguo',this)">🎭 Drama Series (WeTV / iQIYI / Hongguo)</button>
+  <button class="tab" onclick="switchTab('youtube',this)">📺 YouTube</button>
+</div>
+
+<main>
+
+<!-- ═══════════════ HONGGUO / WETV / IQIYI PANEL ═══════════════ -->
+<div class="panel active" id="panel-hongguo">
+
+  <div class="card">
+    <h2>🔗 Drama Series URL (WeTV, iQIYI, Hongguo)</h2>
+    <div class="input-group">
+      <input type="text" id="hg-url" placeholder="Paste WeTV (https://wetv.vip/play/...), iQIYI, or Hongguo URL" autocomplete="off" spellcheck="false"/>
+      <button class="btn btn-primary" id="hg-fetch-btn" onclick="hgFetch()">🔍 Fetch</button>
+    </div>
+  </div>
+
+  <!-- Series info (hidden until fetched) -->
+  <div class="card" id="hg-series-card" style="display:none">
+    <div class="series-info" id="hg-series-info"></div>
+    <div style="margin-top:12px">
+      <button class="btn btn-secondary btn-sm" id="hg-dl-thumb-btn" onclick="hgDownloadThumbnail()" style="display:none">
+        🖼 Download Thumbnail
+      </button>
+    </div>
+  </div>
+
+  <!-- Episode selection -->
+  <div class="card" id="hg-episodes-card" style="display:none">
+    <h2>📺 Episodes</h2>
+    <div class="ep-actions" id="hg-ep-actions">
+      <span class="ep-sel-count" id="hg-sel-count">0 selected</span>
+      <button class="btn btn-secondary btn-sm" onclick="hgSelectAll()">☑️ Select All</button>
+      <button class="btn btn-secondary btn-sm" onclick="hgClear()">🗑 Clear</button>
+    </div>
+    <div class="ep-grid" id="hg-ep-grid"></div>
+    <div style="margin-top:16px;padding:12px;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:8px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:600;font-size:0.95rem">
+        <input type="checkbox" id="hg-enable-merge" onchange="document.getElementById('hg-merge-count-wrap').style.display=this.checked?'inline-flex':'none'" style="width:18px;height:18px;cursor:pointer">
+        🔗 Merge videos into N parts? (ច្របាច់វីដេអូបញ្ចូលគ្នា)
+      </label>
+      <div id="hg-merge-count-wrap" style="display:none;align-items:center;gap:8px">
+        <label for="hg-merge-parts" style="font-size:0.9rem;color:var(--text-muted)">Divide into how many videos?</label>
+        <input type="number" id="hg-merge-parts" value="5" min="2" max="100" style="width:70px;padding:4px 8px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-weight:bold;text-align:center">
+      </div>
+    </div>
+    <div class="ep-actions" style="margin-top:16px">
+      <button class="btn btn-primary" id="hg-dl-sel-btn" onclick="hgDownloadSelected()">📥 Download Selected (0)</button>
+      <button class="btn btn-gold" onclick="hgDownloadAll()">📥 Download ALL</button>
+    </div>
+  </div>
+
+  <!-- Progress -->
+  <div class="card" id="hg-progress-card" style="display:none">
+    <h2>⏳ Downloading…</h2>
+    <div class="progress-wrap" style="display:block" id="hg-progress-wrap">
+      <div class="progress-bar-bg"><div class="progress-bar" id="hg-pbar"></div></div>
+      <div class="progress-text" id="hg-ptext">Starting…</div>
+    </div>
+    <div style="margin-top:14px">
+      <button class="btn btn-sm" id="hg-stop-btn" onclick="hgStopDownload()" style="background:#ef4444;color:#fff;font-weight:bold;padding:6px 16px;">🛑 Stop Download</button>
+    </div>
+  </div>
+
+  <!-- Ready files -->
+  <div class="card" id="hg-files-card" style="display:none">
+    <h2>✅ Ready to Download</h2>
+    <div class="file-list" id="hg-file-list"></div>
+  </div>
+
+</div><!-- /panel-hongguo -->
+
+
+<!-- ═══════════════ YOUTUBE PANEL ═══════════════ -->
+<div class="panel" id="panel-youtube">
+
+  <div class="card">
+    <h2>🔗 YouTube URL</h2>
+    <div class="input-group">
+      <input type="text" id="yt-url" placeholder="https://www.youtube.com/watch?v=…" autocomplete="off" spellcheck="false"/>
+      <button class="btn btn-primary" id="yt-info-btn" onclick="ytGetInfo()">🔍 Analyze</button>
+    </div>
+  </div>
+
+  <!-- YT info -->
+  <div class="card yt-info-box" id="yt-info-card">
+    <img id="yt-thumb-img" class="yt-thumb" src="" alt="thumbnail"/>
+    <div class="yt-title" id="yt-title"></div>
+    <div class="yt-meta" id="yt-meta"></div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn btn-green" onclick="ytDownloadThumb()">🖼 Download Thumbnail</button>
+      <button class="btn btn-blue" id="yt-dl-btn" onclick="ytDownloadVideo()">📥 Download Best Video</button>
+    </div>
+  </div>
+
+  <!-- YT progress -->
+  <div class="card" id="yt-progress-card" style="display:none">
+    <h2>⏳ Processing…</h2>
+    <div class="progress-wrap" style="display:block">
+      <div class="progress-bar-bg"><div class="progress-bar" id="yt-pbar"></div></div>
+      <div class="progress-text" id="yt-ptext">Starting…</div>
+    </div>
+  </div>
+
+  <!-- YT ready -->
+  <div class="card" id="yt-files-card" style="display:none">
+    <h2>✅ Ready</h2>
+    <div class="file-list" id="yt-file-list"></div>
+  </div>
+
+</div><!-- /panel-youtube -->
+
+</main>
+
+<div id="toast"></div>
+
+<script>
+// ════════════════════════════════════════════════════════════════
+// Utilities
+// ════════════════════════════════════════════════════════════════
+let _currentSeries = null;
+let _hgSelected = new Set();
+let _hgPollTimer = null;
+let _ytPollTimer = null;
+
+function switchTab(name, btn) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  btn.classList.add('active');
+}
+
+function toast(msg, type='') {
+  const el = document.getElementById('toast');
+  el.className = type ? `show ${type}` : 'show';
+  el.textContent = msg;
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.remove('show'), 3500);
+}
+
+function fmt_bytes(b) {
+  if (!b) return '';
+  if (b < 1024) return b + ' B';
+  if (b < 1048576) return (b/1024).toFixed(1) + ' KB';
+  if (b < 1073741824) return (b/1048576).toFixed(1) + ' MB';
+  return (b/1073741824).toFixed(2) + ' GB';
+}
+
+function fmt_dur(s) {
+  if (!s) return '';
+  const h = Math.floor(s/3600), m = Math.floor((s%3600)/60), sec = s%60;
+  return h ? `${h}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}` : `${m}:${String(sec).padStart(2,'0')}`;
+}
+
+function getToken() {
+  const p = new URLSearchParams(window.location.search).get('token');
+  if (p) return p;
+  try { if (window.parent && window.parent.sessionToken) return window.parent.sessionToken; } catch(e){}
+  try { return localStorage.getItem('udom_session_token') || ''; } catch(e){}
+  return '';
+}
+
+async function api(path, body, method='POST') {
+  const token = getToken();
+  let url = path;
+  if (token && !url.includes('token=')) {
+    url += (url.includes('?') ? '&' : '?') + 'token=' + encodeURIComponent(token);
+  }
+  const headers = {'Content-Type': 'application/json'};
+  if (token) headers['Authorization'] = 'Bearer ' + token;
+  const opts = { method, headers, credentials: 'include' };
+  if (body !== undefined) opts.body = JSON.stringify(body);
+  const r = await fetch(url, opts);
+  return r.json();
+}
+
+// ════════════════════════════════════════════════════════════════
+// HONGGUO
+// ════════════════════════════════════════════════════════════════
+async function hgFetch() {
+  const url = document.getElementById('hg-url').value.trim();
+  if (!url) { toast('Please paste a WeTV, iQIYI, or Hongguo URL', 'error'); return; }
+  const btn = document.getElementById('hg-fetch-btn');
+  btn.disabled = true; btn.textContent = '⏳ Fetching…';
+  document.getElementById('hg-series-card').style.display = 'none';
+  document.getElementById('hg-episodes-card').style.display = 'none';
+  document.getElementById('hg-progress-card').style.display = 'none';
+  document.getElementById('hg-files-card').style.display = 'none';
+  _hgSelected.clear();
+  try {
+    const res = await api('/api/hongguo/series', {url});
+    if (res.error) { toast('❌ ' + res.error, 'error'); return; }
+    _currentSeries = res.series;
+    _renderSeries(res.series);
+    _renderEpisodes(res.series.episodes || []);
+    toast('✅ Loaded ' + (res.series.episodeCount || 0) + ' episodes', 'ok');
+  } catch(e) {
+    toast('❌ Network error: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false; btn.textContent = '🔍 Fetch';
+  }
+}
+
+function _renderSeries(s) {
+  const card = document.getElementById('hg-series-card');
+  const info = document.getElementById('hg-series-info');
+  const tags = (s.tags||[]).map(t => `<span class="tag">${t}</span>`).join('');
+  const coverHtml = s.cover
+    ? `<img class="series-cover" src="${s.cover}" alt="cover" onclick="hgDownloadThumbnail()" title="Click to download thumbnail"/>`
+    : `<div style="width:120px;height:160px;border-radius:10px;background:var(--surface);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:2rem">🎬</div>`;
+  info.innerHTML = `
+    ${coverHtml}
+    <div class="series-meta">
+      <div class="series-title">${s.name || 'Hongguo Series'}</div>
+      <div class="series-tags">${tags}</div>
+      <div class="series-intro">${s.intro || ''}</div>
+      <div class="series-stats">
+        <div>Episodes: <span>${s.episodeCount || 0}</span></div>
+        <div>Free: <span>${s.accessibleCount || 0}</span></div>
+      </div>
+    </div>`;
+  document.getElementById('hg-dl-thumb-btn').style.display = s.cover ? 'inline-flex' : 'none';
+  card.style.display = 'block';
+}
+
+function _renderEpisodes(episodes) {
+  const grid = document.getElementById('hg-ep-grid');
+  grid.innerHTML = '';
+  episodes.forEach(ep => {
+    const btn = document.createElement('button');
+    btn.className = 'ep-btn';
+    btn.id = 'ep-' + ep.vid;
+    btn.textContent = 'EP' + String(ep.episode).padStart(2, '0');
+    btn.onclick = () => hgToggleEp(ep.vid, btn);
+    grid.appendChild(btn);
+  });
+  document.getElementById('hg-episodes-card').style.display = 'block';
+  _updateSelCount();
+}
+
+function hgToggleEp(vid, btn) {
+  if (_hgSelected.has(vid)) { _hgSelected.delete(vid); btn.classList.remove('selected'); }
+  else { _hgSelected.add(vid); btn.classList.add('selected'); }
+  _updateSelCount();
+}
+
+function hgSelectAll() {
+  if (!_currentSeries) return;
+  (_currentSeries.episodes||[]).forEach(ep => {
+    _hgSelected.add(ep.vid);
+    const btn = document.getElementById('ep-' + ep.vid);
+    if (btn) btn.classList.add('selected');
+  });
+  _updateSelCount();
+}
+
+function hgClear() {
+  _hgSelected.clear();
+  document.querySelectorAll('.ep-btn.selected').forEach(b => b.classList.remove('selected'));
+  _updateSelCount();
+}
+
+function _updateSelCount() {
+  const n = _hgSelected.size;
+  document.getElementById('hg-sel-count').textContent = n + ' selected';
+  document.getElementById('hg-dl-sel-btn').textContent = `📥 Download Selected (${n})`;
+}
+
+async function hgDownloadSelected() {
+  if (!_currentSeries) return;
+  if (_hgSelected.size === 0) { toast('Select at least one episode first', 'error'); return; }
+  const selEps = (_currentSeries.episodes||[]).filter(ep => _hgSelected.has(ep.vid));
+  await _hgStartDownload(selEps);
+}
+
+async function hgDownloadAll() {
+  if (!_currentSeries) return;
+  const allEps = _currentSeries.episodes||[];
+  if (!allEps.length) { toast('No episodes found', 'error'); return; }
+  await _hgStartDownload(allEps);
+}
+
+let _currentHgTaskId = null;
+
+async function _hgStartDownload(episodes) {
+  const url = document.getElementById('hg-url').value.trim();
+  const taskId = 'hg_' + Date.now();
+  const mergeEnabled = document.getElementById('hg-enable-merge')?.checked;
+  const mergeParts = mergeEnabled ? (parseInt(document.getElementById('hg-merge-parts')?.value) || 1) : 1;
+  _currentHgTaskId = taskId;
+  document.getElementById('hg-progress-card').style.display = 'block';
+  document.getElementById('hg-files-card').style.display = 'none';
+  const desc = mergeParts > 1 ? `Queuing ${episodes.length} episode(s) to merge into ${mergeParts} video(s)…` : `Queuing ${episodes.length} episode(s)…`;
+  _hgSetProgress(5, desc);
+  try {
+    const res = await api('/api/hongguo/download', { url, episodes, task_id: taskId, merge_parts: mergeParts });
+    if (res.error) { toast('❌ ' + res.error, 'error'); return; }
+    _hgPoll(res.task_id);
+  } catch(e) {
+    toast('❌ ' + e.message, 'error');
+  }
+}
+
+async function hgStopDownload() {
+  if (!_currentHgTaskId) return;
+  const btn = document.getElementById('hg-stop-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Stopping…'; }
+  try {
+    await api('/api/task/stop', { task_id: _currentHgTaskId });
+    toast('🛑 Download stopped.', 'ok');
+    clearInterval(_hgPollTimer);
+    _hgSetProgress(0, '🛑 Download stopped by user.');
+  } catch(e) {
+    toast('❌ ' + e.message, 'error');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '🛑 Stop Download'; }
+  }
+}
+
+function _hgPoll(taskId) {
+  clearInterval(_hgPollTimer);
+  _hgPollTimer = setInterval(async () => {
+    try {
+      const token = getToken();
+      let pollUrl = '/api/progress?task_id=' + encodeURIComponent(taskId);
+      if (token) pollUrl += '&token=' + encodeURIComponent(token);
+      const res = await fetch(pollUrl, {credentials:'include'});
+      const data = await res.json();
+      if (!data) return;
+      _hgSetProgress(data.percent||0, data.text||'…');
+      if (data.status === 'done') {
+        clearInterval(_hgPollTimer);
+        _hgSetProgress(100, '✅ Download complete!');
+        _renderHgFiles(data.files||[]);
+        toast('✅ Episodes ready!', 'ok');
+      } else if (data.status === 'error') {
+        clearInterval(_hgPollTimer);
+        _hgSetProgress(0, '❌ ' + (data.text||'Failed'));
+        toast('❌ ' + (data.text||'Download failed'), 'error');
+      }
+    } catch(e) {}
+  }, 2000);
+}
+
+function _hgSetProgress(pct, text) {
+  document.getElementById('hg-pbar').style.width = pct + '%';
+  document.getElementById('hg-ptext').textContent = text;
+}
+
+function _renderHgFiles(files) {
+  const list = document.getElementById('hg-file-list');
+  list.innerHTML = '';
+  files.forEach(f => {
+    const item = document.createElement('div');
+    item.className = 'file-item';
+    item.innerHTML = `
+      <span class="file-item-name">🎬 EP${String(f.episode).padStart(2,'0')} — ${f.filename}</span>
+      <a class="btn btn-primary btn-sm file-item-dl" href="${f.download_url}" download="${f.filename}">⬇ Download</a>`;
+    list.appendChild(item);
+  });
+  document.getElementById('hg-files-card').style.display = 'block';
+}
+
+async function hgDownloadThumbnail() {
+  if (!_currentSeries || !_currentSeries.cover) { toast('No thumbnail available', 'error'); return; }
+  try {
+    const res = await api('/api/hongguo/thumbnail', { cover_url: _currentSeries.cover });
+    if (res && res.error) { toast('❌ ' + res.error, 'error'); return; }
+    // The /api/hongguo/thumbnail endpoint returns raw image bytes → open in new tab
+    window.open('/api/hongguo/thumbnail_view?url=' + encodeURIComponent(_currentSeries.cover), '_blank');
+  } catch(e) {
+    // fallback: open the cover URL directly
+    window.open(_currentSeries.cover, '_blank');
+    toast('Opening thumbnail in new tab', 'ok');
+  }
+}
+
+// ════════════════════════════════════════════════════════════════
+// YOUTUBE
+// ════════════════════════════════════════════════════════════════
+let _ytInfo = null;
+
+async function ytGetInfo() {
+  const url = document.getElementById('yt-url').value.trim();
+  if (!url) { toast('Paste a YouTube URL first', 'error'); return; }
+  const btn = document.getElementById('yt-info-btn');
+  btn.disabled = true; btn.textContent = '⏳ Analyzing…';
+  document.getElementById('yt-info-card').style.display = 'none';
+  document.getElementById('yt-progress-card').style.display = 'none';
+  document.getElementById('yt-files-card').style.display = 'none';
+  try {
+    // Use yt info endpoint
+    const token = getToken();
+    let infoUrl = '/api/yt/info?url=' + encodeURIComponent(url);
+    if (token) infoUrl += '&token=' + encodeURIComponent(token);
+    const headers = {};
+    if (token) headers['Authorization'] = 'Bearer ' + token;
+    const res = await fetch(infoUrl, { headers, credentials:'include' });
+    const data = await res.json();
+    if (data.error) { toast('❌ ' + data.error, 'error'); return; }
+    _ytInfo = data;
+    _renderYtInfo(data);
+    toast('✅ Video info loaded', 'ok');
+  } catch(e) {
+    toast('❌ ' + e.message, 'error');
+  } finally {
+    btn.disabled = false; btn.textContent = '🔍 Analyze';
+  }
+}
+
+function _renderYtInfo(info) {
+  const thumb = document.getElementById('yt-thumb-img');
+  const title = document.getElementById('yt-title');
+  const meta  = document.getElementById('yt-meta');
+  if (info.thumbnail) { thumb.src = info.thumbnail; thumb.style.display = 'block'; }
+  title.textContent = info.title || 'YouTube Video';
+  const parts = [];
+  if (info.uploader) parts.push('👤 ' + info.uploader);
+  if (info.duration)  parts.push('⏱ ' + fmt_dur(info.duration));
+  if (info.view_count) parts.push('👁 ' + Number(info.view_count).toLocaleString() + ' views');
+  meta.textContent = parts.join('  •  ');
+  document.getElementById('yt-info-card').style.display = 'block';
+}
+
+async function ytDownloadThumb() {
+  const url = document.getElementById('yt-url').value.trim();
+  if (!url) { toast('Paste a YouTube URL first', 'error'); return; }
+  const btn = document.querySelector('#yt-info-card .btn-green');
+  btn.disabled = true; btn.textContent = '⏳ Getting…';
+  try {
+    const res = await api('/api/yt/thumbnail', { url });
+    if (res.error) { toast('❌ ' + res.error, 'error'); return; }
+    // Open thumbnail URL in a new tab (browser download)
+    const a = document.createElement('a');
+    a.href = res.thumbnail_url;
+    a.download = 'youtube_thumbnail.jpg';
+    a.target = '_blank';
+    a.click();
+    toast('🖼 Thumbnail downloading…', 'ok');
+  } catch(e) {
+    toast('❌ ' + e.message, 'error');
+  } finally {
+    btn.disabled = false; btn.textContent = '🖼 Download Thumbnail';
+  }
+}
+
+async function ytDownloadVideo() {
+  const url = document.getElementById('yt-url').value.trim();
+  if (!url) { toast('Paste a YouTube URL first', 'error'); return; }
+  const taskId = 'yt_dev_' + Date.now();
+  document.getElementById('yt-progress-card').style.display = 'block';
+  document.getElementById('yt-files-card').style.display = 'none';
+  _ytSetProgress(5, 'Starting download…');
+
+  // Try server-side device download (yt-dlp anti-bot)
+  try {
+    const formatId = (_ytInfo && _ytInfo.formats && _ytInfo.formats.length)
+      ? (_ytInfo.formats.find(f => f.vcodec !== 'none' && f.acodec !== 'none') || _ytInfo.formats[_ytInfo.formats.length-1]).format_id
+      : 'bestvideo+bestaudio/best';
+    const res = await api('/api/yt/download_device', { url, format_id: formatId, task_id: taskId });
+    if (res.error) { toast('❌ ' + res.error, 'error'); return; }
+    _ytPoll(taskId);
+  } catch(e) {
+    toast('❌ ' + e.message, 'error');
+  }
+}
+
+function _ytPoll(taskId) {
+  clearInterval(_ytPollTimer);
+  _ytPollTimer = setInterval(async () => {
+    try {
+      const token = getToken();
+      let pollUrl = '/api/progress?task_id=' + encodeURIComponent(taskId);
+      if (token) pollUrl += '&token=' + encodeURIComponent(token);
+      const res = await fetch(pollUrl, {credentials:'include'});
+      const data = await res.json();
+      if (!data) return;
+      _ytSetProgress(data.percent||0, data.text||'…');
+      if (data.status === 'done') {
+        clearInterval(_ytPollTimer);
+        _ytSetProgress(100, '✅ Ready!');
+        if (data.download_url) {
+          document.getElementById('yt-files-card').style.display = 'block';
+          const list = document.getElementById('yt-file-list');
+          list.innerHTML = `<div class="file-item">
+            <span class="file-item-name">📺 ${_ytInfo ? (_ytInfo.title||'Video') : 'Video'}.mp4</span>
+            <a class="btn btn-primary btn-sm" href="${data.download_url}" download>⬇ Download</a>
+          </div>`;
+          toast('✅ Video ready!', 'ok');
+        }
+      } else if (data.status === 'error') {
+        clearInterval(_ytPollTimer);
+        _ytSetProgress(0, '❌ ' + (data.text||'Failed'));
+        toast('❌ ' + (data.text||'Download failed'), 'error');
+      }
+    } catch(e) {}
+  }, 2000);
+}
+
+function _ytSetProgress(pct, text) {
+  document.getElementById('yt-pbar').style.width = pct + '%';
+  document.getElementById('yt-ptext').textContent = text;
+}
+
+// ── Keyboard shortcut: Enter → trigger active panel's main action ──
+document.getElementById('hg-url').addEventListener('keydown', e => { if(e.key==='Enter') hgFetch(); });
+document.getElementById('yt-url').addEventListener('keydown', e => { if(e.key==='Enter') ytGetInfo(); });
+</script>
+
+</body>
+</html>
+
