@@ -163,3 +163,4 @@ D:\My-Project\Telegram Bot\UdomAI-Bot-main (6)\
 ## 📄 License & Attribution
 - Built with ❤️ by **UdomAI Engineering**.
 - Powered by Google Gemini, Faster-Whisper, Demucs v4, Pyrogram, and Edge-TTS.
+"# UdomAI" 
