@@ -11,20 +11,6 @@
     "request_count": 434,
     "password_hash": "6e0753806d418a16aaa4029bcb6284e933e82b1dcaea6649fce59557bfa78352:2231a30558f2cd530393278b68d0b135a3d4511b8412ed57a655994fe8c01855",
     "telegram_bots": [
-      {
-        "bot_token": "8942178405:AAF_4o1aAgZtnqsCjtqxXwo_NXZuLtH06CQ",
-        "bot_username": "UdomAI_Registration_bot",
-        "bot_name": "Udom AI Registration",
-        "status": "APPROVED",
-        "can_send_otp": false
-      },
-      {
-        "bot_token": "8089358296:AAFx-1H66BxVQFHm1cfTqRUe3zymm7nbSfM",
-        "bot_username": "jit_laor_bot",
-        "bot_name": "Jit_Laor",
-        "status": "APPROVED",
-        "can_send_otp": false
-      }
     ],
     "assigned_server": "main",
     "fb_pages": [
@@ -73,13 +59,6 @@
     "request_count": 25,
     "password_hash": "b9e431865675218f6f98469fc8ea664d8e43180637554aa75cfd50962192bd1f:706d47dcf0c65b0c37e65622e644ae07a847ec143d34fbc1960dd32bccf9cb27",
     "telegram_bots": [
-      {
-        "bot_token": "8978215267:AAHjn2gf-hIiRIwSrPvAXwFDiZz2pV8X2CY",
-        "bot_username": "udomtest_bot",
-        "bot_name": "DubberStudio_bot",
-        "status": "APPROVED",
-        "can_send_otp": false
-      }
     ],
     "default_schedule_bot": "8978215267:AAHjn2gf-hIiRIwSrPvAXwFDiZz2pV8X2CY",
     "fb_pages_access": [
