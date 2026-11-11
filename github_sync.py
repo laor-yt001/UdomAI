@@ -12,7 +12,7 @@ logger = logging.getLogger("github_sync")
 # Direct opener to ensure GitHub API requests bypass any local dead proxy
 _direct_opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
 
-DEFAULT_PAT = "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"
+DEFAULT_PAT = ""
 DEFAULT_REPOS = [
     "doai-bot/main",
     "doai-bot/server1",
